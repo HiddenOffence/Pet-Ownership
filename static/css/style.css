@@ -1,0 +1,15 @@
+/**
+GLOBAL STYLES
+**/
+body {
+    background-color: #fffa8a;
+}
+
+h1 {
+    color: orangered;
+}
+
+nav {
+    background-color: firebrick;
+    color: white;
+}
