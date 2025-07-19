@@ -1,15 +1,25 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, abort, g
+from datetime import datetime 
 import sqlite3
 
 app = Flask(__name__)
 
 # Connect database
 def get_db():
-    conn = sqlite3.connect('pets.db')
-    conn.row_factory = sqlite3.Row  # Get results as dictionaries
-    return conn
+    db = getattr(g, '_databse', None)
+    if db in None:
+        db = g._database = sqlite3.connect('pets.db')
+    db.row_factory = sqlite3.Row 
+    return db
 
-# Homepage - Browse all pets
+# Close Database connection 
+@app.teardown_appcontext
+def close_db(exception):
+    db = getattr(g, '_databse', None)
+    if db is not None:
+        db.close() 
+
+# Homepage
 @app.route('/')
 def home():
     conn = get_db()
@@ -20,7 +30,12 @@ def home():
         JOIN Species s ON p.species_id = s.id
     ''').fetchall()
     conn.close()
-    return render_template('index.html', pets=pets)
+    return render_template('home.html', pets=pets, title='HOME')
+
+# About page
+@app.route('/about_pets')
+def about_pets():
+    return render_template('about_pets.html', title='ABOUT_PETS')
 
 # Pet profiles page
 @app.route('/pet/<int:pet_id>')
@@ -57,7 +72,7 @@ def pet_page(pet_id):
     ''', (pet_id,)).fetchall()
     
     conn.close()
-    return render_template('pet.html', 
+    return render_template('pet_profiles.html', 
                          pet=pet, 
                          attributes=attributes,
                          places=places,
@@ -108,6 +123,20 @@ def comparison_results():
     
     conn.close()
     return render_template('comparison_results.html', pet1=pet1, pet2=pet2)
+
+# Reviews form and submission
+@app.route('/add_review', methods=['GET', 'POST'])
+def add_review():
+    if request.method == 'POST':
+        name = request.form['name'].strip()
+        if len(name) < 3 or len(name) > 20:
+            abort(404)
+    return render_template('add_reviews.html', page_title='reviews')
+
+# Custom 404 error handler
+@app.errorhandler(404)
+def not_found(e):
+    return render_template('404.html'), 404
 
 if __name__ == '__main__':
     app.run(debug=True)

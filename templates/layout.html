@@ -8,13 +8,19 @@
         <header>
             <h1>Pet Collection</h1>
             <nav>
-                <a href="/">Home</a>
-                <a href="/comparison">Comparison</a>
-                <a href="/comparison_results">Comparison Results</a>
+                <hr>
+                <a href="/templates/index.html">Home</a>
+                <a href="/templates/pet.html">About</a>
+                <a href="/templates/comparison.html">Comparison</a>
+                <a href="/templates/add_reviews.html">Reviews</a>
+                <hr>
             </nav>
         </header>
         <main>
             {% block content %}{% endblock %}
         </main>
     </body>
+    <footer>
+            <h2 style="background-color: pink;text-align: center;">&copy; 2025 UttaraCORP</h2>
+        </footer>
 </html>

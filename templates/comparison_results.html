@@ -18,5 +18,5 @@
         <td>{{ pet2.attributes or "None" }}</td>
     </tr>
 </table>
-<a href="/comparison" class="button">Compare Again</a>
+<a href="{{ url_for('comparison')}}" class="button">Compare Again</a>
 {% endblock %}
