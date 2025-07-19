@@ -7,7 +7,7 @@ app = Flask(__name__)
 # Connect database
 def get_db():
     db = getattr(g, '_databse', None)
-    if db in None:
+    if db is None:
         db = g._database = sqlite3.connect('pets.db')
     db.row_factory = sqlite3.Row 
     return db
@@ -22,15 +22,26 @@ def close_db(exception):
 # Homepage
 @app.route('/')
 def home():
+    search_term = request.args.get('q', '')
     conn = get_db()
     cursor = conn.cursor()
-    pets = conn.execute('''
-        SELECT p.id, p.name, s.name as species 
-        FROM Pets p
-        JOIN Species s ON p.species_id = s.id
-    ''').fetchall()
+    # Search term - DeepSeek
+    if search_term:
+        pets = conn.execute('''
+            SELECT p.id, p.name, s.name as species 
+            FROM Pets p
+            JOIN Species s ON p.species_id = s.id
+            WHERE p.name LIKE ? OR s.name LIKE ?
+        ''', (f'%{search_term}%',f'%{search_term}%')).fetchall()
+    else:
+        pets = conn.execute('''
+            SELECT p.id, p.name, s.name as species 
+            FROM Pets p
+            JOIN Species s ON p.species_id = s.id
+        ''').fetchall()
+
     conn.close()
-    return render_template('home.html', pets=pets, title='HOME')
+    return render_template('home.html', pets=pets, title='HOME', search_term=search_term)
 
 # About page
 @app.route('/about_pets')
@@ -124,13 +135,24 @@ def comparison_results():
     conn.close()
     return render_template('comparison_results.html', pet1=pet1, pet2=pet2)
 
-# Reviews form and submission
-@app.route('/add_review', methods=['GET', 'POST'])
-def add_review():
+# Add Review
+@app.route('/add_review', methods=['POST'])
+def add_review(pet_id):
     if request.method == 'POST':
-        name = request.form['name'].strip()
-        if len(name) < 3 or len(name) > 20:
+        reviewer_name = request.form['name'].strip()
+        rating = request.form.get('rating')
+        comment = request.form.get('comment', '')
+
+        # Validation
+        if not reviewer_name or not rating:
             abort(404)
+
+    conn = get_db()
+    conn.execute('''
+            INSERT INTO Reviews (pet_id, reviewer_name, rating, comment)
+            VALUES (?, ?, ?, ?)
+        ''', (pet_id, reviewer_name, int(rating), comment))
+    conn.commit()
     return render_template('add_reviews.html', page_title='reviews')
 
 # Custom 404 error handler
