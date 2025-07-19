@@ -1,4 +1,38 @@
-{% extends 'layout.html' %}
+{% extends "layout.html" %}
 {% block content %}
-<p> {{pizzas}} </p>
+<div class="pet-profile">
+    <h2>{{ pet.name }}</h2>
+    <p><strong>Species:</strong> {{ pet.species }} ({{ pet.species_desc }})</p>
+
+    <h3>Attributes</h3>
+    <ul>
+        {% for attr in attributes %}
+        <li>{{ attr.name }}</li>
+        {% else %}
+        <li>No attributes listed</li>
+        {% endfor %}
+    </ul>
+
+    <h3>Avaliable At</h3>
+    <ul>
+        {% for place in places %}
+        <li>{{ place.name }} - ${{ "%.2f"|format(place.price) }}</li>
+        {% endfor %}
+    </ul>
+    
+    <h3>Reviews</h3>
+    {% for review in reviews %}
+    <div class="review">
+        <div class="review-header">
+            <strong>{{ review.reviewer_name }}</strong>
+            <span class="stars">
+                {{ "★" * review.rating }}{{ "☆" * (5 - review.rating) }}
+            </span>
+        </div>
+        {% if review.comment %}
+        <p class="comment">{{ review.comment }}</p>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
 {% endblock %}

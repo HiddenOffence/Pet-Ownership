@@ -53,10 +53,9 @@ def about_pets():
 @app.route('/pet/<int:pet_id>')
 def pet(pet_id):
     conn = get_db()
-    cursor = conn.cursor()
     
     # Get pet info
-    pet = conn.execute(('''
+    pet = conn.execute('''
         SELECT p.*, s.name as species, s.description as species_desc,
                AVG(r.rating) as avg_rating
         FROM Pets p
@@ -160,9 +159,9 @@ def add_review(pet_id):
         # Validation
         errors = []
         if not reviewer_name:
-        errors.append('Please enter your name')
+            errors.append('Please enter your name')
         if not rating or not rating.isdigit() or int(rating) not in range(1, 6):
-        errors.append('Please select a valid rating (1-5 stars)')
+            errors.append('Please select a valid rating (1-5 stars)')
 
         if not errors:
             conn = get_db()
