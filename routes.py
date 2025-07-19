@@ -13,7 +13,6 @@ def get_db():
 @app.route('/')
 def home():
     conn = get_db()
-    # Get all pets with species
     cursor = conn.cursor()
     pets = conn.execute('''
         SELECT p.id, p.name, s.name as species 
