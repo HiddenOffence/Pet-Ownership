@@ -1,6 +1,46 @@
-{% extends 'layout.html' %}
-{% block content %}
-<hr>
-<p>{{one}} + {{two}} = {{total}} </p>
-<hr>
-{% endblock %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Add Your Review</title>
+        <link rel="stylesheet" href="/static/css/style.css">
+    </head>
+    <body>
+        <div class="review-container">
+            <label for="first_name">First Name:*</label>
+            <input type="text" id="first_name" name="first_name" required>
+        </div>
+
+        <div class="form-group">
+            <label for="last_name">Last Name:*</label>
+            <input type="text" id="last_name" name="last_name" required>
+        </div>
+        <div class="form-group">
+                <label>Your Rating:*</label>
+                <div class="star-rating">
+                    {% for i in range(5, 0, -1) %}
+                    <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}" required>
+                    <label for="star{{ i }}">★</label>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="pet_name">Pet Name(s):*</label>
+                <input type="text" id="pet_name" name="pet_name" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="species">Species (e.g., Dog, Cat):*</label>
+                <input type="text" id="species" name="species" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="description">Your Experience:*</label>
+                <textarea id="description" name="description" required></textarea>
+            </div>
+            
+            <button type="submit" class="submit-btn">Submit Review</button>
+        </form>
+    </div>
+    </body>
+</html>

@@ -23,9 +23,15 @@
     <h3>Reviews</h3>
     {% for review in reviews %}
     <div class="review">
-        <p><strong>{{ review.reviewer_name }}</strong> 
-        ({{ "★" * review.rating }}{{ "☆" * (5 - review.rating) }})</p>
-        <p>{{ review.comment }}</p>
+        <div class="review-header">
+            <strong>{{ review.reviewer_name }}</strong>
+            <span class="stars">
+                {{ "★" * review.rating }}{{ "☆" * (5 - review.rating) }}
+            </span>
+        </div>
+        {% if review.comment %}
+        <p class="comment">{{ review.comment }}</p>
+        {% endif %}
     </div>
     {% endfor %}
 </div>

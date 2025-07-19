@@ -1,4 +1,4 @@
-// Enhanced interacts - DeepSeek
+// Enhanced interactions - DeepSeek
 document.addEventListener('DOMContentLoaded', function() {
     // Half-star hover effect
     const stars = document.querySelectorAll('.star-rating label');

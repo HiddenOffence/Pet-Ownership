@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, abort, g
 from datetime import datetime 
+from math import floor
 import sqlite3
 
 app = Flask(__name__)
@@ -48,18 +49,21 @@ def home():
 def about_pets():
     return render_template('about_pets.html', title='ABOUT_PETS')
 
-# Pet profiles page
+# Pets page
 @app.route('/pet/<int:pet_id>')
-def pet_page(pet_id):
+def pet(pet_id):
     conn = get_db()
     cursor = conn.cursor()
     
     # Get pet info
-    pet = conn.execute('''
-        SELECT p.*, s.name as species, s.description as species_desc
+    pet = conn.execute(('''
+        SELECT p.*, s.name as species, s.description as species_desc,
+               AVG(r.rating) as avg_rating
         FROM Pets p
         JOIN Species s ON p.species_id = s.id
+        LEFT JOIN Reviews r ON p.id = r.pet_id
         WHERE p.id = ?
+        GROUP BY p.id
     ''', (pet_id,)).fetchone()
     
     # Get attributes
@@ -83,6 +87,16 @@ def pet_page(pet_id):
     ''', (pet_id,)).fetchall()
     
     conn.close()
+
+    # Convert rating to display
+    if pet['avg_rating']:
+        full_stars = floor(pet['avg_rating'])
+        half_star = 1 if (pet['avg_rating'] - full_stars) >= 0.5 else 0
+        empty_stars = 5 - full_stars - half_star
+    else:
+        full_stars = half_star = 0
+        empty_stars = 5
+
     return render_template('pet_profiles.html', 
                          pet=pet, 
                          attributes=attributes,
@@ -135,17 +149,29 @@ def comparison_results():
     conn.close()
     return render_template('comparison_results.html', pet1=pet1, pet2=pet2)
 
-# Add Review
-@app.route('/add_review', methods=['POST'])
+# Add Review with validation
+@app.route('/pet/<int:pet_id>/review', methods=['POST'])
 def add_review(pet_id):
     if request.method == 'POST':
         reviewer_name = request.form['name'].strip()
         rating = request.form.get('rating')
-        comment = request.form.get('comment', '')
+        comment = request.form.get('comment', '').strip()
 
         # Validation
-        if not reviewer_name or not rating:
-            abort(404)
+        errors = []
+        if not reviewer_name:
+        errors.append('Please enter your name')
+        if not rating or not rating.isdigit() or int(rating) not in range(1, 6):
+        errors.append('Please select a valid rating (1-5 stars)')
+
+        if not errors:
+            conn = get_db()
+            conn.execute('''
+            INSERT INTO Reviews (pet_id, reviewer_name, rating, comment)
+            VALUES (?, ?, ?, ?)
+        ''', (pet_id, reviewer_name, int(rating), comment))
+        conn.commit()
+        conn.close()            
 
     conn = get_db()
     conn.execute('''
@@ -153,7 +179,15 @@ def add_review(pet_id):
             VALUES (?, ?, ?, ?)
         ''', (pet_id, reviewer_name, int(rating), comment))
     conn.commit()
-    return render_template('add_reviews.html', page_title='reviews')
+    conn.close()
+    return render_template('add_reviews.html', page_title='reviews', errors=errors,
+                         full_stars=full_stars,
+                         half_star=half_star,
+                         empty_stars=empty_stars,
+                         attributes=attributes,
+                         places=places,
+                         reviews=reviews,
+                         form_data=request.form) # Pass form data back for re-population - DeepSeek
 
 # Custom 404 error handler
 @app.errorhandler(404)
