@@ -1,6 +1,22 @@
-{% extends 'layout.html' %}
+{% extends "layout.html" %}
 {% block content %}
-<hr>
-<h1>Hello, ME!</h1>
-<hr>
+<h2>Comparison Results</h2>
+<table class="comparison-table">
+    <tr>
+        <th>Feature</th>
+        <th>{{ pet1.name }}</th>
+        <th>{{ pet2.name }}</th>
+    </tr>
+    <tr>
+        <td>Species</td>
+        <td>{{ pet1.species }}</td>
+        <td>{{ pet2.species }}</td>
+    </tr>
+    <tr>
+        <td>Attributes</td>
+        <td>{{ pet1.attributes or "None" }}</td>
+        <td>{{ pet2.attributes or "None" }}</td>
+    </tr>
+</table>
+<a href="/comparison" class="button">Compare Again</a>
 {% endblock %}

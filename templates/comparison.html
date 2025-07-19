@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+{% block content %}
+<h2>Compare Pets</h2>
+<form method="POST" action="/comparison_results">
+    <div class="comparison-select">
+        <select name="pet1" required>
+            <option value="">Select first pet</option>
+            {% for pet in pets %}
+            <option value="{{ pet.id }}">{{ pet.name }}</option>
+            {% endfor %}
+        </select>
+        
+        <span class="vs">VS</span>
+        
+        <select name="pet2" required>
+            <option value="">Select second pet</option>
+            {% for pet in pets %}
+            <option value="{{ pet.id }}">{{ pet.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <button type="submit">Compare</button>
+</form>
+{% endblock %}
