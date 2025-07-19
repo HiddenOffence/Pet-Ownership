@@ -1,7 +1,32 @@
 {% extends "layout.html" %}
 {% block content %}
-{% for pizza in pizzas %}
-<a href="/pizza/{{ pizza[0] }}">{{ pizza [1] }}</a><br>
+<div class="pet-profile">
+    <h2>{{ pet.name }}</h2>
+    <p><strong>Species:</strong> {{ pet.species }} ({{ pet.species_desc }})</p>
 
-{% endfor %}
+    <h3>Attributes</h3>
+    <ul>
+        {% for attr in attributes %}
+        <li>{{ attr.name }}</li>
+        {% else %}
+        <li>No attributes listed</li>
+        {% endfor %}
+    </ul>
+
+    <h3>Avaliable At</h3>
+    <ul>
+        {% for place in places %}
+        <li>{{ place.name }} - ${{ "%.2f"|format(place.price) }}</li>
+        {% endfor %}
+    </ul>
+    
+    <h3>Reviews</h3>
+    {% for review in reviews %}
+    <div class="review">
+        <p><strong>{{ review.reviewer_name }}</strong> 
+        ({{ "★" * review.rating }}{{ "☆" * (5 - review.rating) }})</p>
+        <p>{{ review.comment }}</p>
+    </div>
+    {% endfor %}
+</div>
 {% endblock %}
