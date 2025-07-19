@@ -1,6 +1,13 @@
 {% extends 'layout.html' %}
+
 {% block content %}
-<hr>
-<h1>Hello, World!</h1>
-<hr>
+<h2>All Pets</h2>
+<div class="pet-list">
+    {% for pet in pets %}
+    <div class="pet-card">
+        <h3><a href="/pet/{{ pet.id }}">{{ per.name }}</a></h3>
+    <p>{{ pet.species }}</p>
+    </div>
+    {% endfor %}
+</div>
 {% endblock %}
