@@ -1,17 +1,20 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 import sqlite3
 
 app = Flask(__name__)
 
+# Connect database
 def get_db():
     conn = sqlite3.connect('pets.db')
     conn.row_factory = sqlite3.Row  # Get results as dictionaries
     return conn
 
-# Homepage - Show all pets
+# Homepage - Browse all pets
 @app.route('/')
 def home():
     conn = get_db()
+    # Get all pets with species
+    cursor = conn.cursor()
     pets = conn.execute('''
         SELECT p.id, p.name, s.name as species 
         FROM Pets p
@@ -20,10 +23,11 @@ def home():
     conn.close()
     return render_template('index.html', pets=pets)
 
-# Single pet page
+# Pet profiles page
 @app.route('/pet/<int:pet_id>')
-def pet(pet_id):
+def pet_page(pet_id):
     conn = get_db()
+    cursor = conn.cursor()
     
     # Get pet info
     pet = conn.execute('''
@@ -66,17 +70,19 @@ def compare():
     conn = get_db()
     pets = conn.execute('SELECT id, name FROM Pets').fetchall()
     conn.close()
-    return render_template('compare.html', pets=pets)
+    return render_template('comparison.html', pets=pets)
 
-@app.route('/compare_results', methods=['POST'])
-def compare_results():
+# Comparison results
+@app.route('/comparison_results', methods=['POST'])
+def comparison_results():
     pet1_id = request.form['pet1']
     pet2_id = request.form['pet2']
     
     conn = get_db()
+    cursor = conn.cursor()
     
     # Get pet 1 data
-    pet1 = conn.execute('''
+    pet1 = cursor.execute('''
         SELECT p.name, s.name as species, 
                GROUP_CONCAT(a.name) as attributes
         FROM Pets p
@@ -85,10 +91,11 @@ def compare_results():
         LEFT JOIN Attributes a ON pa.attribute_id = a.id
         WHERE p.id = ?
         GROUP BY p.id
-    ''', (pet1_id,)).fetchone()
+    ''', (pet1_id,))
+    pet1 = cursor.fetchone() 
     
     # Get pet 2 data
-    pet2 = conn.execute('''
+    pet2 = cursor.execute('''
         SELECT p.name, s.name as species, 
                GROUP_CONCAT(a.name) as attributes
         FROM Pets p
@@ -97,10 +104,11 @@ def compare_results():
         LEFT JOIN Attributes a ON pa.attribute_id = a.id
         WHERE p.id = ?
         GROUP BY p.id
-    ''', (pet2_id,)).fetchone()
+    ''', (pet2_id,))
+    pet2 = cursor.fetchone()
     
     conn.close()
-    return render_template('compare_results.html', pet1=pet1, pet2=pet2)
+    return render_template('comparison_results.html', pet1=pet1, pet2=pet2)
 
 if __name__ == '__main__':
     app.run(debug=True)
