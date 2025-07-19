@@ -11,6 +11,59 @@ def get_db():
     if db is None:
         db = g._database = sqlite3.connect('pets.db')
     db.row_factory = sqlite3.Row 
+    # Creats tables if they dont exist
+    c = db.cursor()
+
+    c.execute('''CREATE TABLE IF NOT EXISTS Pets (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name TEXT NOT NULL,
+    species_id INT NOT NULL,
+    FOREIGN KEY (species_id) REFERENCES Species(id));
+              ''')
+
+    c.execute('''CREATE TABLE IF NOT EXISTS Species (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    description TEXT); 
+    ''')
+
+    c.execute('''CREATE TABLE IF NOT EXISTS Attributes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    description TEXT); ''')
+
+    c.execute('''CREATE TABLE IF NOT EXISTS Places (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    adress TEXT);
+    ''')
+
+    c.execute('''CREATE TABLE IF NOT EXISTS pet_attributes (
+    pet_id INT,
+    attributes_id INT,
+    cost DECIMAL(6,2),
+    PRIMARY KEY (pet_id, attributes_id),
+    FOREIGN KEY (pet_id) REFERENCES Pets(id),
+    FOREIGN KEY (attributes_id) REFERENCES Places(id));''')
+
+    c.execute('''CREATE TABLE IF NOT EXISTS place_pet (
+    pet_id INT,
+    place_id INT,
+    cost DECIMAL(6,2),
+    PRIMARY KEY (pet_id, place_id),
+    FOREIGN KEY (pet_id) REFERENCES Pets(id),
+    FOREIGN KEY (place_id) REFERENCES Places(id));''')
+
+    c.execute('''CREATE TABLE IF NOT EXISTS Reviews (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    reviewer_name TEXT NOT NULL,
+    rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
+    pet_name TEXT NOT NULL,
+    species TEXT NOT NULL,
+    comment TEXT NOT NULL,
+    FOREIGN KEY (pet_id) REFERENCES Pets(id));
+    ''')
+
     return db
 
 # Close Database connection 
@@ -25,7 +78,6 @@ def close_db(exception):
 def home():
     search_term = request.args.get('q', '')
     conn = get_db()
-    cursor = conn.cursor()
     # Search term - DeepSeek
     if search_term:
         pets = conn.execute('''
