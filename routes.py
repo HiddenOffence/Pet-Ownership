@@ -201,8 +201,8 @@ def comparison_results():
     return render_template('comparison_results.html', pet1=pet1, pet2=pet2, comparison_results=comparison_results )
 
 # Add Review with validation
-@app.route('/add_review', methods=['POST'])
-def add_review(pet_id):
+@app.route('/add_review', methods=['GET', 'POST'])
+def add_review():
     if request.method == 'POST':
         reviewer_name = request.form['name'].strip()
         rating = request.form.get('rating')
@@ -220,7 +220,7 @@ def add_review(pet_id):
             conn.execute('''
             INSERT INTO Reviews (pet_id, reviewer_name, rating, comment)
             VALUES (?, ?, ?, ?)
-        ''', (pet_id, reviewer_name, int(rating), comment))
+        ''', (reviewer_name, int(rating), comment))
         conn.commit()
         conn.close()            
 
@@ -228,17 +228,16 @@ def add_review(pet_id):
     conn.execute('''
             INSERT INTO Reviews (pet_id, reviewer_name, rating, comment)
             VALUES (?, ?, ?, ?)
-        ''', (pet_id, reviewer_name, int(rating), comment))
+        ''', (reviewer_name, int(rating), comment))
     conn.commit()
     conn.close()
-    return render_template('add_reviews.html', page_title='reviews', errors=errors,
-                         full_stars=full_stars,
-                         half_star=half_star,
-                         empty_stars=empty_stars,
-                         attributes=attributes,
-                         places=places,
-                         add_reviews=add_reviews,
-                         form_data=request.form) # Pass form data back for re-population - DeepSeek
+    return render_template('add_reviews.html', 
+                        page_title='Reviews', 
+                        errors=errors, 
+                        add_review=add_review, 
+                        reviewer_name=reviewer_name, 
+                        rating=rating, comment=comment, 
+                        form_data=request.form) # Pass form data back for re-population - DeepSeek
 
 # Custom 404 error handler
 @app.errorhandler(404)
