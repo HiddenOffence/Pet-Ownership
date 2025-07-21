@@ -5,17 +5,9 @@
         <meta charset="UTF-8">
         <title>Compare Pets</title>
     </head>
-<nav>
-                <hr>
-                <a href="/templates/index.html">Home</a>
-                <a href="/templates/about_pets.html">About</a>
-                <a href="/templates/comparison.html">Comparison</a>
-                <a href="/templates/add_reviews.html">Reviews</a>
-                <hr>
-            </nav>
     <body>
     <h2>Compare Pets</h2>
-    <form action="{{ url_for('compare_pets', id=pets.id) }}" method="POST">
+    <form action="{{ url_for('compare', id=pets.id) }}" method="POST">
         <div class="comparison-select">
             <select name="pet1" required>
                 <option value="">Select first pet</option>
@@ -36,7 +28,4 @@
         <button type="submit">Compare</button>
     </form>
     </body>
-    <footer>
-            <h2 style="background-color: pink;text-align: center;">&copy; 2025 UttaraCORP</h2>
-        </footer>
 {% endblock %}

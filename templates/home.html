@@ -2,14 +2,6 @@
 {% block content %}
 <link rel="stylesheet" href="/static/stlye.css">
 <h2>All Pets</h2>
-<nav>
-                <hr>
-                <a href="/templates/index.html">Home</a>
-                <a href="/templates/about_pets.html">About</a>
-                <a href="/templates/comparison.html">Comparison</a>
-                <a href="/templates/add_reviews.html">Reviews</a>
-                <hr>
-            </nav>
 <div class="pet-list">
     {% for pet in pets %}
     <div class="pet-card">
@@ -18,7 +10,4 @@
     </div>
     {% endfor %}
 </div>
-<footer>
-            <h2 style="background-color: pink;text-align: center;">&copy; 2025 UttaraCORP</h2>
-        </footer>
 {% endblock %}

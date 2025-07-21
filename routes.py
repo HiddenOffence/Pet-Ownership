@@ -99,7 +99,7 @@ def home():
 # About page
 @app.route('/about_pets')
 def about_pets():
-    return render_template('about_pets.html', title='ABOUT_PETS')
+    return render_template('about_pets.html', title='ABOUT_PETS', pet=pet, about_pets=about_pets)
 
 # Pets page
 @app.route('/pet/<int:pet_id>')
@@ -160,7 +160,7 @@ def compare():
     conn = get_db()
     pets = conn.execute('SELECT id, name FROM Pets').fetchall()
     conn.close()
-    return render_template('comparison.html', pets=pets)
+    return render_template('comparison.html', pets=pets, campare=compare)
 
 # Comparison results
 @app.route('/comparison_results', methods=['POST'])
@@ -198,10 +198,10 @@ def comparison_results():
     pet2 = cursor.fetchone()
     
     conn.close()
-    return render_template('comparison_results.html', pet1=pet1, pet2=pet2)
+    return render_template('comparison_results.html', pet1=pet1, pet2=pet2, comparison_results=comparison_results )
 
 # Add Review with validation
-@app.route('/pet/<int:pet_id>/review', methods=['POST'])
+@app.route('/add_review', methods=['POST'])
 def add_review(pet_id):
     if request.method == 'POST':
         reviewer_name = request.form['name'].strip()
@@ -237,7 +237,7 @@ def add_review(pet_id):
                          empty_stars=empty_stars,
                          attributes=attributes,
                          places=places,
-                         reviews=reviews,
+                         add_reviews=add_reviews,
                          form_data=request.form) # Pass form data back for re-population - DeepSeek
 
 # Custom 404 error handler
