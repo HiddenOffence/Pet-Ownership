@@ -203,10 +203,11 @@ def comparison_results():
 # Add Review with validation
 @app.route('/add_review', methods=['GET', 'POST'])
 def add_review():
+    reviewer_name = request.form.get('reviewer_name')
+    rating = request.form.get('rating')
+    comment = request.form.get('comment')
     if request.method == 'POST':
-        reviewer_name = request.form['name'].strip()
-        rating = request.form.get('rating')
-        comment = request.form.get('comment', '').strip()
+        
 
         # Validation
         errors = []
@@ -218,7 +219,7 @@ def add_review():
         if not errors:
             conn = get_db()
             conn.execute('''
-            INSERT INTO Reviews (pet_id, reviewer_name, rating, comment)
+            INSERT INTO Reviews (reviewer_name, rating, comment)
             VALUES (?, ?, ?, ?)
         ''', (reviewer_name, int(rating), comment))
         conn.commit()
@@ -226,18 +227,15 @@ def add_review():
 
     conn = get_db()
     conn.execute('''
-            INSERT INTO Reviews (pet_id, reviewer_name, rating, comment)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO Reviews (reviewer_name, rating, comment)
+            VALUES (?, ?, ?)
         ''', (reviewer_name, int(rating), comment))
     conn.commit()
     conn.close()
     return render_template('add_reviews.html', 
                         page_title='Reviews', 
                         errors=errors, 
-                        add_review=add_review, 
-                        reviewer_name=reviewer_name, 
-                        rating=rating, comment=comment, 
-                        form_data=request.form) # Pass form data back for re-population - DeepSeek
+                        add_review=add_review)
 
 # Custom 404 error handler
 @app.errorhandler(404)
