@@ -96,6 +96,11 @@ def home():
     conn.close()
     return render_template('home.html', pets=pets, title='HOME', search_term=search_term)
 
+# Testing Javascript code
+@app.route('/test_java')
+def test_java():
+    return render_template('test_java.html')
+
 # About page
 @app.route('/about_pets')
 def about_pets():
