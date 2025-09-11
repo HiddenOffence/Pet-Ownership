@@ -96,11 +96,6 @@ def home():
     conn.close()
     return render_template('home.html', pets=pets, title='HOME', search_term=search_term)
 
-# Testing Javascript code
-@app.route('/test_java')
-def test_java():
-    return render_template('test_java.html')
-
 # About page
 @app.route('/about_pets')
 def about_pets():
@@ -226,18 +221,18 @@ def add_review():
             conn.execute('''
             INSERT INTO Reviews (reviewer_name, rating, comment)
             VALUES (?, ?, ?, ?)
-        ''', (reviewer_name, int(rating), comment))
+        ''', (reviewer_name, int.from_bytes(rating), comment))
         conn.commit()
         conn.close()            
 
-    conn = get_db()
-    conn.execute('''
-            INSERT INTO Reviews (reviewer_name, rating, comment)
-            VALUES (?, ?, ?)
-        ''', (reviewer_name, int(rating), comment))
-    conn.commit()
-    conn.close()
-    return render_template('add_reviews.html', 
+        conn = get_db()
+        conn.execute('''
+                INSERT INTO Reviews (reviewer_name, rating, comment)
+                VALUES (?, ?, ?)
+            ''', (reviewer_name, int.from_bytes(rating), comment))
+        conn.commit()
+        conn.close()
+    return render_template('add_review.html', 
                         page_title='Reviews', 
                         errors=errors, 
                         add_review=add_review)
