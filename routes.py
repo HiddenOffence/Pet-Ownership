@@ -76,32 +76,52 @@ def close_db(exception):
 # Homepage
 @app.route('/')
 def home():
-    search_term = request.args.get('q', '')
     conn = get_db()
-    # Search term - DeepSeek
-    if search_term:
-        pets = conn.execute('''
-            SELECT p.id, p.name, s.name as species 
-            FROM Pets p
-            JOIN Species s ON p.species_id = s.id
-            WHERE p.name LIKE ? OR s.name LIKE ?
-        ''', (f'%{search_term}%',f'%{search_term}%')).fetchall()
-    else:
-        pets = conn.execute('''
-            SELECT p.id, p.name, s.name as species 
-            FROM Pets p
-            JOIN Species s ON p.species_id = s.id
-        ''').fetchall()
-
+    featured_pets= conn.execute("SELECT * FROM Pets ORDER BY difficulty ASC LIMIT 3").fetchall()
     conn.close()
     return render_template('home.html', pets=pets, title='HOME', search_term=search_term)
+    
+    # Browse pet page
+@app.route('/browse')
+def browse():
+    search_text = request.args.get('search')
+    difficulty_choice = request.args.get('difficulty')
+
+    sql = 'SELECT * FROM Pets'
+    filters = []
+    values= []
+
+    if search_text is not None and search_text != "":
+        filters.append('(name LIKE ? OR type LIKE ?)')
+        values.appened('%' + search_text + '%')
+        values.append('%' + search_text + '%')
+
+    if difficulty_choice is not None and difficulty_choice != "":
+        try:
+            number = int(difficulty_choice)
+            filters.append('difficulty = ?')
+            values.append(number)
+        except:
+            pass # if user typed wrong value, ignore it 
+
+    if len(filters) > 0:
+        sql = sql + ' WHERE ' + ' AND '.join(filters)
+
+    sql = sql + ' ORDER BY difficulty ASC'
+
+    conn = get_db()
+    pets = conn.execute(sql, values).fetchall()
+    conn.close()
+
+    return render_template('browse.html', pets=pets, search=search_text)
+
 
 # About page
 @app.route('/about_pets')
 def about_pets():
     return render_template('about_pets.html', title='ABOUT_PETS', pet=pet, about_pets=about_pets)
 
-# Pets page
+# Pets profile page
 @app.route('/pet/<int:pet_id>')
 def pet(pet_id):
     conn = get_db()
@@ -160,7 +180,7 @@ def compare():
     conn = get_db()
     pets = conn.execute('SELECT id, name FROM Pets').fetchall()
     conn.close()
-    return render_template('comparison.html', pets=pets, campare=compare)
+    return render_template('comparison.html', pets=pets, compare=compare)
 
 # Comparison results
 @app.route('/comparison_results', methods=['POST'])
