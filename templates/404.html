@@ -1,8 +1,8 @@
-<!DOCTYPE html>
-<html>
+{% extends 'layout.html' %}
+{% block title %}Not found{% endblock %}
+{% block content %}
 <head>
     <title>Page Not Found</title>
-    <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
     <div class="error-container">
@@ -11,4 +11,4 @@
         <a href="/" class="home-btn">Return to Home</a>
     </div>
 </body>
-</html>
+{% endblock %}

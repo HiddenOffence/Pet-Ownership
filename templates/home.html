@@ -1,13 +1,38 @@
-{% extends "layout.html" %}
+{% extends 'layout.html' %}
+{% block title %}Home — Your Perfect Pet{% endblock %}
 {% block content %}
-<link rel="stylesheet" href="/static/css/style.css">
-<h2>All Pets</h2>
-<div class="pet-list">
-    {% for pet in pets %}
-    <div class="pet-card">
-        <h3><a href="/pet/{{ pet.id }}">{{ pet.name }}</a></h3>
-    <p>{{ pet.species }}</p>
-    </div>
+<section class="hero">
+  <h2>Which Pets Are Easiest to Care For?</h2>
+  <p class="lead">Find a low-maintenance companion that suits your home and life.</p>
+  <form action="{{ url_for('browse') }}" class="search-form">
+    <input type="text" name="search" placeholder="Search pets, species or traits">
+    <button>Search</button>
+  </form>
+</section>
+
+<section>
+  <h3>Featured Pets</h3>
+  <div class="grid">
+    {% for p in featured %}
+      <article class="card">
+        <h4><a href="{{ url_for('pet_profile', pet_id=p.id) }}">{{ p.name }}</a></h4>
+        <p>{{ p.species_name }} • Setup: ${{ p.cost_setup }}</p>
+      </article>
     {% endfor %}
-</div>
+  </div>
+</section>
+
+<section>
+  <h3>Recommended for you</h3>
+  <div class="grid">
+    {% for r in recommendations %}
+      <article class="card">
+        <h4><a href="{{ url_for('pet_profile', pet_id=r.id) }}">{{ r.name }}</a></h4>
+        <p>{{ r.species_name }} • Avg rating: {{ r.avg_rating or '—' }}</p>
+      </article>
+    {% else %}
+      <p>No recommendations available.</p>
+    {% endfor %}
+  </div>
+</section>
 {% endblock %}

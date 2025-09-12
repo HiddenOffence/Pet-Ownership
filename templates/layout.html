@@ -1,27 +1,33 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
     <head>
-        <title>Pet Collection</title>
+        <title>Your Perfect Pet Awaits!</title>
         <link rel="stylesheet" href="/static/css/style.css">
     </head>
     <body>
-        <header>
-            <h1>Pet Collection</h1>
-            <nav>
-                <hr>
+        <header class="site-header">
+            <div class="container">
+            <h1 class="brand"><a href="/">Your Perfect Pet Awaits!</a></h1>
+            </div>
+            <nav class="main-nav">
                 <a href="/">Home</a>
                 <a href="/about_pets">About</a>
+                <a href="/browse">Browse Pets</a> 
                 <a href="/compare">Comparison</a>
                 <a href="/add_review">Reviews</a>
-                <hr>
             </nav>
         </header>
-        <main>
+        <main class="container">
             {% block content %}{% endblock %}
         </main>
         <script src="/static/script.js"></script>
     </body>
-    <footer>
-            <h2 style="background-color: pink;text-align: center;">&copy; 2025 UttaraCORP</h2>
-        </footer>
+     <footer class="site-footer">
+    <div class="container">
+            <h2> &copy; 2025 Perfect Pet CORP</h2>
+        </div>
+  </footer>
+</body>
 </html>
