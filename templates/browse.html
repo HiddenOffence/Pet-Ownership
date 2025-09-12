@@ -1,0 +1,29 @@
+{% extends 'layout.html' %}
+{% block title %}Browse — Your Perfect Pet{% endblock %}
+{% block content %}
+<h2>Browse Pets</h2>
+
+<form class="filters" action="{{ url_for('browse') }}">
+  <input name="search" placeholder="Search..." value="{{ search or '' }}">
+  <select name="difficulty">
+    <option value="">Any difficulty</option>
+    <option value="1">Easy</option>
+    <option value="2">Moderate</option>
+    <option value="3">Challenging</option>
+  </select>
+  <input name="max_cost" placeholder="Max setup cost $" type="number" min="0">
+  <button>Apply</button>
+</form>
+
+<div class="grid">
+  {% for pet in pets %}
+    <article class="card">
+      <h3><a href="{{ url_for('pet_profile', pet_id=pet.id) }}">{{ pet.name }}</a></h3>
+      <p>{{ pet.species_name }} • ${{ pet.cost_setup }} • {{ pet.space_required }}</p>
+      <p>Avg rating: {{ pet.avg_rating or '—' }}</p>
+    </article>
+  {% else %}
+    <p>No pets matched your filters.</p>
+  {% endfor %}
+</div>
+{% endblock %}
