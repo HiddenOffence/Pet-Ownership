@@ -225,10 +225,23 @@ def add_review():
         return redirect(url_for('pet_profile'))
 
 
+@app.route('/api/pets')
+def api_pets():
+    conn = get_db()
+    try:
+        rows = conn.execute('SELECT pets.id, pets.name, species.name AS species_name FROM Pets JOIN Species ON pets.species_id = species.id').fetchall()
+        data = [dict(r) for r in rows]
+    except Exception:
+        data = []
+    finally:
+        conn.close()
+    return {"pets": data}
+
 # Custom 404 error handler
 @app.errorhandler(404)
 def not_found(e):
     return render_template('404.html'), 404
+
 
 if __name__ == '__main__':
     app.run(debug=True)
