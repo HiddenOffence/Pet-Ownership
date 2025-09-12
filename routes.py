@@ -136,19 +136,19 @@ def about_pets():
 
 
 # Pets profile page
-@app.route('/pet/<int:pet_id>')
-def pet_profile(pet_id):
+@app.route('/pet/<pet_name>')
+def pet_profile(pet_name):
     conn = get_db()
     try:
         pet = conn.execute('''
-            SELECT pets.*, species.name AS species_name, species.typi_lifespan, species.general_difficulty
+            SELECT pets.id, species.name AS species_name, species.typical_lifespan, species.general_difficulty
             FROM Pets AS pets JOIN Species AS species ON pets.species_id = species.id
             WHERE pets.id = ?
-        ''', (pet_id,)).fetchone()
+        ''', (pet_name,)).fetchone()
 
-        reviews = conn.execute('SELECT * FROM Reviews WHERE pet_id = ? ORDER BY created_at DESC', (pet_id,)).fetchall()
+        reviews = conn.execute('SELECT * FROM Reviews WHERE pet_id = ? ORDER BY created_at DESC', (pet_name,)).fetchall()
         # calculate average rating safely
-        avg = conn.execute('SELECT AVG(rating) as avg_rating FROM Reviews WHERE pet_id = ?', (pet_id,)).fetchone()
+        avg = conn.execute('SELECT AVG(rating) as avg_rating FROM Reviews WHERE pet_id = ?', (pet_name,)).fetchone()
         avg_rating = round(avg["avg_rating"], 1) if avg["avg_rating"] is not None else None
     except Exception:
         conn.close()
@@ -199,30 +199,30 @@ def compare():
 # Add Review with validation
 @app.route('/add_review', methods=['GET', 'POST'])
 def add_review():
-        pet_name = request.form.get('pet_name')
-        reviewer_name = request.form.get('reviewer_name') or "Anonymous"
-        rating = request.form.get('rating') or "5"
-        comment = request.form.get('comment') or ""
+    pet_name = request.form.get('pet_name')
+    reviewer_name = request.form.get('reviewer_name') or "Anonymous"
+    rating = request.form.get('rating') or "5"
+    comment = request.form.get('comment') or ""
 
         # validate pet_id and rating using try/except so app doesn't crash
-        try:
-            rating_num = int(rating)
-            if rating_num < 1 or rating_num > 5:
-                rating_num = 5
-        except:
-            return redirect(url_for('home'))
+    try:
+        rating = int(rating)
+        if rating < 1 or rating > 5:
+            rating = 5
+    except:
+        return redirect(url_for('home'))
 
-        conn = get_db()
-        try:
-            conn.execute('INSERT INTO Reviews (pet_id, author, rating, body) VALUES (?,?,?,?)', (pet_id_num, author, rating_num, body))
-            conn.commit()
-        except Exception:
-            # if insert fails, don't crash - redirect to pet page
-            conn.rollback()
-        finally:
-            conn.close()
+    conn = get_db()
+    try:
+        conn.execute('INSERT INTO Reviews (pet_name, reviewer_name, rating, comment) VALUES (?,?,?,?)', (pet_name, reviewer_name, rating, comment))
+        conn.commit()
+    except Exception:
+        # if insert fails, don't crash - redirect to pet page
+        conn.rollback()
 
-        return redirect(url_for('pet_profile'))
+        conn.close()
+
+        return redirect(url_for('pet_profile', pet_name=pet_name))
 
 
 @app.route('/api/pets')

@@ -1,39 +1,39 @@
-{% extends "layout.html" %}
+{% extends 'layout.html' %}
+{% block title %}{{ pet.name }} — Profile{% endblock %}
 {% block content %}
-<link rel="stylesheet" href="/static/css/style.css">
-<div class="pet-profile">
-    <h2>{{ pet.name }}</h2>
-    <p><strong>Species:</strong> {{ pet.species }} ({{ pet.species_desc }})</p>
+<article class="profile card">
+  <h2>{{ pet.name }}</h2>
+  <p><strong>Species:</strong> {{ pet.species_name }} (life: {{ pet.typical_lifespan }})</p>
+  <ul>
+    <li>Setup cost: ${{ pet.cost_setup }}</li>
+    <li>Daily time: {{ pet.daily_time_minutes }} minutes/day</li>
+    <li>Space needed: {{ pet.space_required }}</li>
+    <li>Temperament: {{ pet.temperament }}</li>
+    <li>Notes: {{ pet.notes }}</li>
+  </ul>
 
-    <h3>Attributes</h3>
-    <ul>
-        {% for attr in attributes %}
-        <li>{{ attr.name }}</li>
-        {% else %}
-        <li>No attributes listed</li>
-        {% endfor %}
-    </ul>
-
-    <h3>Avaliable At</h3>
-    <ul>
-        {% for place in places %}
-        <li>{{ place.name }} - ${{ "%.2f"|format(place.price) }}</li>
-        {% endfor %}
-    </ul>
-    
-    <h3>Reviews</h3>
-    {% for review in reviews %}
-    <div class="review">
-        <div class="review-header">
-            <strong>{{ review.reviewer_name }}</strong>
-            <span class="stars">
-                {{ "★" * review.rating }}{{ "☆" * (5 - review.rating) }}
-            </span>
-        </div>
-        {% if review.comment %}
-        <p class="comment">{{ review.comment }}</p>
-        {% endif %}
-    </div>
+  <h3>Community Reviews {% if avg_rating %} • Average: {{ avg_rating }}/5{% endif %}</h3>
+  <section class="reviews">
+    {% for r in reviews %}
+      <div class="review">
+        <strong>{{ r.author }}</strong> — {{ r.rating }}/5
+        <p>{{ r.body }}</p>
+        <small>{{ r.created_at }}</small>
+      </div>
+    {% else %}
+      <p>No reviews yet — be the first to add one!</p>
     {% endfor %}
-</div>
+  </section>
+
+  <h4>Add a review</h4>
+  <form action="{{ url_for('add_review') }}" method="post" class="review-form">
+    <input type="hidden" name="pet_id" value="{{ pet.id }}">
+    <input name="author" placeholder="Your name">
+    <select name="rating">
+      <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
+    </select>
+    <textarea name="body" placeholder="Share your experience"></textarea>
+    <button>Submit Review</button>
+  </form>
+</article>
 {% endblock %}
