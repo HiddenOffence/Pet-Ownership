@@ -1,16 +1,15 @@
-from flask import Flask, render_template, request, abort, g
-from datetime import datetime 
-from math import floor
+from flask import Flask, render_template, request, redirect, url_for, g
 import sqlite3
 
 app = Flask(__name__)
 
+
 # Connect database
 def get_db():
-    db = getattr(g, '_databse', None)
+    db = getattr(g, '_database', None)
     if db is None:
         db = g._database = sqlite3.connect('pets.db')
-    db.row_factory = sqlite3.Row 
+    db.row_factory = sqlite3.Row
     # Creats tables if they dont exist
     c = db.cursor()
 
@@ -66,51 +65,65 @@ def get_db():
 
     return db
 
-# Close Database connection 
+
+# Close Database connection
 @app.teardown_appcontext
 def close_db(exception):
     db = getattr(g, '_databse', None)
     if db is not None:
-        db.close() 
+        db.close()
+
 
 # Homepage
 @app.route('/')
 def home():
     conn = get_db()
-    featured_pets= conn.execute("SELECT * FROM Pets ORDER BY difficulty ASC LIMIT 3").fetchall()
+    try:
+        featured = conn.execute('SELECT pets, species.name AS species_name FROM Pets AS pets JOIN Species AS species ON pets.species_id = species.id ORDER BY pets.cost_setup ASC LIMIT 3').fetchall()
+    except Exception:
+        featured = []
     conn.close()
-    return render_template('home.html', pets=pets, title='HOME', search_term=search_term)
-    
-    # Browse pet page
+    return render_template('home.html', title='HOME', featured=featured)
+
+
+# Browse pet page
 @app.route('/browse')
 def browse():
     search_text = request.args.get('search')
     difficulty_choice = request.args.get('difficulty')
 
-    sql = 'SELECT * FROM Pets'
+    sql = '''SELECT pets, species.name AS species_name, AVG(reviews.rating) AS avg_rating
+    FROM Pets AS pets
+    JOIN Species AS species ON pets.species_id = species.id
+    LEFT JOIN Reviews AS reviews ON reviews.pet_id = pets.id
+    '''
     filters = []
-    values= []
+    params = []
 
-    if search_text is not None and search_text != "":
-        filters.append('(name LIKE ? OR type LIKE ?)')
-        values.appened('%' + search_text + '%')
-        values.append('%' + search_text + '%')
+    if search_text is not None and search_text.strip() != "":
+        filters.append('(pets.name LIKE ? OR species.name LIKE ? OR pets.temperament LIKE ?)')
+        term = f'%{search_text.strip()}%'
+        params.extend([term, term, term])
 
     if difficulty_choice is not None and difficulty_choice != "":
+        # try/except used to avoid crash if it's not a number
         try:
-            number = int(difficulty_choice)
-            filters.append('difficulty = ?')
-            values.append(number)
+            diff_num = int(difficulty_choice)
+            filters.append('species.general_difficulty = ?')
+            params.append(diff_num)
         except:
-            pass # if user typed wrong value, ignore it 
+            pass
 
-    if len(filters) > 0:
-        sql = sql + ' WHERE ' + ' AND '.join(filters)
+    if filters:
+        sql += ' WHERE ' + ' AND '.join(filters)
 
-    sql = sql + ' ORDER BY difficulty ASC'
+    sql += ' GROUP BY pets.id ORDER BY pets.cost_setup ASC;'
 
     conn = get_db()
-    pets = conn.execute(sql, values).fetchall()
+    try:
+        pets = conn.execute(sql, params).fetchall()
+    except Exception:
+        pets = []
     conn.close()
 
     return render_template('browse.html', pets=pets, search=search_text)
@@ -121,141 +134,96 @@ def browse():
 def about_pets():
     return render_template('about_pets.html', title='ABOUT_PETS', pet=pet, about_pets=about_pets)
 
+
 # Pets profile page
 @app.route('/pet/<int:pet_id>')
-def pet(pet_id):
+def pet_profile(pet_id):
     conn = get_db()
-    
-    # Get pet info
-    pet = conn.execute('''
-        SELECT p.*, s.name as species, s.description as species_desc,
-               AVG(r.rating) as avg_rating
-        FROM Pets p
-        JOIN Species s ON p.species_id = s.id
-        LEFT JOIN Reviews r ON p.id = r.pet_id
-        WHERE p.id = ?
-        GROUP BY p.id
-    ''', (pet_id,)).fetchone()
-    
-    # Get attributes
-    attributes = conn.execute('''
-        SELECT a.name FROM Attributes a
-        JOIN pet_attributes pa ON a.id = pa.attribute_id
-        WHERE pa.pet_id = ?
-    ''', (pet_id,)).fetchall()
-    
-    # Get places
-    places = conn.execute('''
-        SELECT pl.name, pp.price FROM Places pl
-        JOIN place_pet pp ON pl.id = pp.place_id
-        WHERE pp.pet_id = ?
-    ''', (pet_id,)).fetchall()
-    
-    # Get reviews
-    reviews = conn.execute('''
-        SELECT reviewer_name, rating, comment FROM Reviews
-        WHERE pet_id = ?
-    ''', (pet_id,)).fetchall()
-    
+    try:
+        pet = conn.execute('''
+            SELECT pets.*, species.name AS species_name, species.typi_lifespan, species.general_difficulty
+            FROM Pets AS pets JOIN Species AS species ON pets.species_id = species.id
+            WHERE pets.id = ?
+        ''', (pet_id,)).fetchone()
+
+        reviews = conn.execute('SELECT * FROM Reviews WHERE pet_id = ? ORDER BY created_at DESC', (pet_id,)).fetchall()
+        # calculate average rating safely
+        avg = conn.execute('SELECT AVG(rating) as avg_rating FROM Reviews WHERE pet_id = ?', (pet_id,)).fetchone()
+        avg_rating = round(avg["avg_rating"], 1) if avg["avg_rating"] is not None else None
+    except Exception:
+        conn.close()
+        return render_template('404.html'), 404
     conn.close()
 
-    # Convert rating to display
-    if pet['avg_rating']:
-        full_stars = floor(pet['avg_rating'])
-        half_star = 1 if (pet['avg_rating'] - full_stars) >= 0.5 else 0
-        empty_stars = 5 - full_stars - half_star
-    else:
-        full_stars = half_star = 0
-        empty_stars = 5
+    if pet is None:
+        return render_template('404.html'), 404
 
-    return render_template('pet_profiles.html', 
-                         pet=pet, 
-                         attributes=attributes,
-                         places=places,
-                         reviews=reviews)
+    return render_template('pet.html', pet=pet, reviews=reviews, avg_rating=avg_rating)
+
 
 # Comparison tool
 @app.route('/compare')
 def compare():
+    first_id = request.args.get('first')
+    second_id = request.args.get('second')
     conn = get_db()
-    pets = conn.execute('SELECT id, name FROM Pets').fetchall()
-    conn.close()
-    return render_template('comparison.html', pets=pets, compare=compare)
+    try:
+        pets = []
+        # get first if provided
+        if first_id is not None and first_id != "":
+            try:
+                p1 = conn.execute('SELECT pets.*, species.name as species_name FROM Pets pets JOIN Species species ON pets.species_id = species.id WHERE pets.id = ?', (int(first_id),)).fetchone()
+                if p1:
+                    pets.append(p1)
+            except:
+                pass
+        if second_id is not None and second_id != "":
+            try:
+                p2 = conn.execute('SELECT pets.*, species.name as species_name FROM Pets pets JOIN Species species ON pets.species_id = species.id WHERE pets.id = ?', (int(second_id),)).fetchone()
+                if p2:
+                    pets.append(p2)
+            except:
+                pass
 
-# Comparison results
-@app.route('/comparison_results', methods=['POST'])
-def comparison_results():
-    pet1_id = request.form['pet1']
-    pet2_id = request.form['pet2']
-    
-    conn = get_db()
-    cursor = conn.cursor()
-    
-    # Get pet 1 data
-    pet1 = cursor.execute('''
-        SELECT p.name, s.name as species, 
-               GROUP_CONCAT(a.name) as attributes
-        FROM Pets p
-        JOIN Species s ON p.species_id = s.id
-        LEFT JOIN pet_attributes pa ON p.id = pa.pet_id
-        LEFT JOIN Attributes a ON pa.attribute_id = a.id
-        WHERE p.id = ?
-        GROUP BY p.id
-    ''', (pet1_id,))
-    pet1 = cursor.fetchone() 
-    
-    # Get pet 2 data
-    pet2 = cursor.execute('''
-        SELECT p.name, s.name as species, 
-               GROUP_CONCAT(a.name) as attributes
-        FROM Pets p
-        JOIN Species s ON p.species_id = s.id
-        LEFT JOIN pet_attributes pa ON p.id = pa.pet_id
-        LEFT JOIN Attributes a ON pa.attribute_id = a.id
-        WHERE p.id = ?
-        GROUP BY p.id
-    ''', (pet2_id,))
-    pet2 = cursor.fetchone()
-    
-    conn.close()
-    return render_template('comparison_results.html', pet1=pet1, pet2=pet2, comparison_results=comparison_results )
+        # fallback: first two pets
+        if len(pets) < 2:
+            pets = conn.execute('SELECT pets.*, species.name as species_name FROM Pets pets JOIN Species species ON pets.species_id = species.id LIMIT 2').fetchall()
+    except Exception:
+        pets = []
+    finally:
+        conn.close()
+
+    return render_template('compare.html', pets=pets)
+
 
 # Add Review with validation
 @app.route('/add_review', methods=['GET', 'POST'])
 def add_review():
-    reviewer_name = request.form.get('reviewer_name')
-    rating = request.form.get('rating')
-    comment = request.form.get('comment')
-    if request.method == 'POST':
-        
+        pet_name = request.form.get('pet_name')
+        reviewer_name = request.form.get('reviewer_name') or "Anonymous"
+        rating = request.form.get('rating') or "5"
+        comment = request.form.get('comment') or ""
 
-        # Validation
-        errors = []
-        if not reviewer_name:
-            errors.append('Please enter your name')
-        if not rating or not rating.isdigit() or int(rating) not in range(1, 6):
-            errors.append('Please select a valid rating (1-5 stars)')
-
-        if not errors:
-            conn = get_db()
-            conn.execute('''
-            INSERT INTO Reviews (reviewer_name, rating, comment)
-            VALUES (?, ?, ?, ?)
-        ''', (reviewer_name, int.from_bytes(rating), comment))
-        conn.commit()
-        conn.close()            
+        # validate pet_id and rating using try/except so app doesn't crash
+        try:
+            rating_num = int(rating)
+            if rating_num < 1 or rating_num > 5:
+                rating_num = 5
+        except:
+            return redirect(url_for('home'))
 
         conn = get_db()
-        conn.execute('''
-                INSERT INTO Reviews (reviewer_name, rating, comment)
-                VALUES (?, ?, ?)
-            ''', (reviewer_name, int.from_bytes(rating), comment))
-        conn.commit()
-        conn.close()
-    return render_template('add_review.html', 
-                        page_title='Reviews', 
-                        errors=errors, 
-                        add_review=add_review)
+        try:
+            conn.execute('INSERT INTO Reviews (pet_id, author, rating, body) VALUES (?,?,?,?)', (pet_id_num, author, rating_num, body))
+            conn.commit()
+        except Exception:
+            # if insert fails, don't crash - redirect to pet page
+            conn.rollback()
+        finally:
+            conn.close()
+
+        return redirect(url_for('pet_profile'))
+
 
 # Custom 404 error handler
 @app.errorhandler(404)
