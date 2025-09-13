@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+{% block title %}Error{% endblock %}
+{% block content %}
+
+<div class="error-container">
+    <h2>Oops! Something went wrong.</h2>
+    <p>{{ message }}</p>
+    <div class="action-buttons">
+        <a href="/compare" class="btn-primary">Back to Comparison</a>
+        <a href="/" class="btn-secondary">Home Page</a>
+    </div>
+</div>
+
+{% endblock %}

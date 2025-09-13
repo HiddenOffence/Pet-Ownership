@@ -1,31 +1,136 @@
 {% extends "layout.html" %}
+{% block title %}Compare Pets{% endblock %}
 {% block content %}
 <link rel="stylesheet" href="/static/css/style.css">
-<head>
-        <meta charset="UTF-8">
-        <title>Compare Pets</title>
-    </head>
-    <body>
-    <h2>Compare Pets</h2>
-    <form action="{{ url_for('compare') }}" method="get">
-        <div class="comparison-select">
-            <select name="pet1" required>
-                <option value="">Select first pet</option>
-                {% for pet in pets %}
-                <option value="{{ pet.name }}">{{ pet.name }}</option>
-                {% endfor %}
-            </select>
+
+<div class="compare-container">
+    <h2>Compare Pets Side by Side</h2>
+    <p class="compare-intro">Select two pets to see how they compare in terms of care, cost, and requirements.</p>
+    
+    <form action="/comparison_results" method="get" class="compare-form">
+        <div class="comparison-selectors">
+            <div class="pet-selector">
+                <label for="pet1">First Pet:</label>
+                <select name="first" id="pet1" required>
+                    <option value="">Select first pet</option>
+                    {% for pet in pets %}
+                    <option value="{{ pet.name }}">{{ pet.name }}</option>
+                    {% endfor %}
+                </select>
+                <div class="pet-preview" id="preview1">
+                    <p>Select a pet to see details</p>
+                </div>
+            </div>
             
-            <span class="vs">VS</span>
+            <div class="vs-circle">
+                <span>VS</span>
+            </div>
             
-            <select name="pet2" required>
-                <option value="">Select second pet</option>
-                {% for pet in pets %}
-                <option value="{{ pet.name }}">{{ pet.name }}</option>
-                {% endfor %}
-            </select>
+            <div class="pet-selector">
+                <label for="pet2">Second Pet:</label>
+                <select name="second" id="pet2" required>
+                    <option value="">Select second pet</option>
+                    {% for pet in pets %}
+                    <option value="{{ pet.name }}">{{ pet.name }}</option>
+                    {% endfor %}
+                </select>
+                <div class="pet-preview" id="preview2">
+                    <p>Select a pet to see details</p>
+                </div>
+            </div>
         </div>
-        <button type="submit">Compare</button>
+        
+        <button type="submit" class="compare-btn">Compare Now</button>
     </form>
-    </body>
+    
+    <div class="popular-comparisons">
+        <h3>Popular Comparisons</h3>
+        <div class="popular-grid">
+            <a href="/compare_results?first=1&second=2" class="popular-item">
+                <span>Hamster vs Guinea Pig</span>
+            </a>
+            <a href="/compare_results?first=3&second=4" class="popular-item">
+                <span>Goldfish vs Betta</span>
+            </a>
+            <a href="/compare_results?first=5&second=6" class="popular-item">
+                <span>Leopard Gecko vs Bearded Dragon</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+// Get pet data from the server
+fetch('/api/pets')
+    .then(response => response.json())
+    .then(data => {
+        // Store pet data globally - keyed by name instead of ID
+        window.petData = {};
+        data.pets.forEach(pet => {
+            window.petData[pet.name] = pet;  // Changed from pet.id to pet.name
+        });
+        
+        // Set up event listeners
+        document.getElementById('pet1').addEventListener('change', function() {
+            updatePetPreview(this.value, 'preview1');
+            checkSelections();
+        });
+
+        document.getElementById('pet2').addEventListener('change', function() {
+            updatePetPreview(this.value, 'preview2');
+            checkSelections();
+        });
+    })
+    .catch(error => {
+        console.error('Error fetching pet data:', error);
+        // Show error message in preview boxes
+        document.getElementById('preview1').innerHTML = '<p>Error loading pet data</p>';
+        document.getElementById('preview2').innerHTML = '<p>Error loading pet data</p>';
+    });
+
+function updatePetPreview(petName, previewId) {  // Changed parameter name from petId to petName
+    const preview = document.getElementById(previewId);
+    
+    if (!petName) {
+        preview.innerHTML = '<p>Select a pet to see details</p>';
+        return;
+    }
+    
+    const pet = window.petData[petName];  // Look up by name instead of ID
+    if (pet) {
+        preview.innerHTML = `
+            <h4>${pet.name}</h4>
+            <p><strong>Species:</strong> ${pet.species_name || 'Unknown'}</p>
+            <p><strong>Lifespan:</strong> ${pet.lifespan || 'Unknown'}</p>
+            <p><strong>Setup Cost:</strong> $${pet.cost_setup || 'Unknown'}</p>
+            <p><strong>Daily Care:</strong> ${pet.daily_time_minutes || 'Unknown'} minutes</p>
+            <p><strong>Difficulty:</strong> ${pet.difficulty || 'Unknown'}/5</p>
+        `;
+    } else {
+        preview.innerHTML = '<p>Pet information not available</p>';
+    }
+}
+
+// Enable/disable compare button based on selection
+function checkSelections() {
+    const pet1 = document.getElementById('pet1').value;
+    const pet2 = document.getElementById('pet2').value;
+    const compareBtn = document.querySelector('.compare-btn');
+    
+    if (pet1 && pet2 && pet1 !== pet2) {
+        compareBtn.disabled = false;
+        compareBtn.style.opacity = '1';
+        compareBtn.style.cursor = 'pointer';
+    } else {
+        compareBtn.disabled = true;
+        compareBtn.style.opacity = '0.6';
+        compareBtn.style.cursor = 'not-allowed';
+    }
+}
+
+// Initialize button state
+document.addEventListener('DOMContentLoaded', function() {
+    checkSelections();
+});
+</script>
 {% endblock %}

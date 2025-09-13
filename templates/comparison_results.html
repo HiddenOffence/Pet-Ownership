@@ -2,34 +2,66 @@
 {% block title %}Comparison Results{% endblock %}
 {% block content %}
 
-<h2>Comparison Results</h2>
-<table class="comparison-table">
-  <tr>
-    <th>Feature</th>
-    <th>{{ pet1.name }}</th>
-    <th>{{ pet2.name }}</th>
-  </tr>
-  <tr>
-    <td>Species</td>
-    <td>{{ pet1.species }}</td>
-    <td>{{ pet2.species }}</td>
-  </tr>
-  <tr>
-    <td>Lifespan</td>
-    <td>{{ pet1.lifespan }}</td>
-    <td>{{ pet2.lifespan }}</td>
-  </tr>
-  <tr>
-    <td>Setup Cost</td>
-    <td>${{ pet1.cost_setup }}</td>
-    <td>${{ pet2.cost_setup }}</td>
-  </tr>
-  <tr>
-    <td>Daily Care</td>
-    <td>{{ pet1.daily_time }} mins</td>
-    <td>{{ pet2.daily_time }} mins</td>
-  </tr>
-</table>
-<a href="/compare" class="button">Compare Again</a>
+<div class="comparison-results">
+    <h2>Comparison Results</h2>
+    
+    <div class="pets-comparing">
+        <div class="pet-card">
+            <h3>{{ pet1.name }}</h3>
+        </div>
+        
+        <div class="vs-text">VS</div>
+        
+        <div class="pet-card">
+            <h3>{{ pet2.name }}</h3>
+        </div>
+    </div>
+    
+    <div class="comparison-summary">
+        <h3>Summary</h3>
+        <ul>
+            {% if pet1.cost_setup is not none and pet2.cost_setup is not none %}
+                {% if pet1.cost_setup < pet2.cost_setup %}
+                <li>{{ pet1.name }} has a lower setup cost than {{ pet2.name }}</li>
+                {% elif pet1.cost_setup > pet2.cost_setup %}
+                <li>{{ pet2.name }} has a lower setup cost than {{ pet1.name }}</li>
+                {% else %}
+                <li>Both pets have similar setup costs</li>
+                {% endif %}
+            {% else %}
+                <li>Setup cost comparison not available</li>
+            {% endif %}
+            
+            {% if pet1.daily_time_min is not none and pet2.daily_time_min is not none %}
+                {% if pet1.daily_time_min < pet2.daily_time_min %}
+                <li>{{ pet1.name }} requires less daily care time than {{ pet2.name }}</li>
+                {% elif pet1.daily_time_min > pet2.daily_time_min %}
+                <li>{{ pet2.name }} requires less daily care time than {{ pet1.name }}</li>
+                {% else %}
+                <li>Both pets require similar daily care time</li>
+                {% endif %}
+            {% else %}
+                <li>Daily care time comparison not available</li>
+            {% endif %}
+            
+            {% if pet1.difficulty is not none and pet2.difficulty is not none %}
+                {% if pet1.difficulty < pet2.difficulty %}
+                <li>{{ pet1.name }} is easier to care for than {{ pet2.name }}</li>
+                {% elif pet1.difficulty > pet2.difficulty %}
+                <li>{{ pet2.name }} is easier to care for than {{ pet1.name }}</li>
+                {% else %}
+                <li>Both pets have similar care difficulty</li>
+                {% endif %}
+            {% else %}
+                <li>Difficulty comparison not available</li>
+            {% endif %}
+        </ul>
+    </div>
+    
+    <div class="action-buttons">
+        <a href="/compare" class="btn-secondary">Compare Again</a>
+        <a href="/browse" class="btn-primary">Browse Pets</a>
+    </div>
+</div>
 
 {% endblock %}

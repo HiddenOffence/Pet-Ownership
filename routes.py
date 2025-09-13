@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, g
+from flask import Flask, render_template, request, redirect, url_for, g, jsonify
 import sqlite3
 
 app = Flask(__name__)
@@ -20,7 +20,7 @@ def get_db():
     lifespan TEXT,
     difficulty INTEGER,
     cost_setup DECIMAL(6,2),
-    daily_time_minutes INTEGER,
+    daily_time_min INTEGER,
     space_required TEXT,
     temperament TEXT,
     notes TEXT,
@@ -80,6 +80,34 @@ def close_db(exception):
     db = getattr(g, '_databse', None)
     if db is not None:
         db.close()
+
+
+@app.route('/test_pets')
+def test_pets():
+    conn = get_db()
+    try:
+        # Get all pets with their IDs and names
+        pets = conn.execute('SELECT id, name FROM Pets').fetchall()
+
+        # Create a simple HTML response
+        html = "<h1>Pets in Database</h1><ul>"
+        for pet in pets:
+            html += f"<li>ID: {pet['id']}, Name: {pet['name']}</li>"
+        html += "</ul>"
+
+        # Add test links
+        html += "<h2>Test Comparisons</h2><ul>"
+        if len(pets) >= 2:
+            html += f"<li><a href='/compare_results?first={pets[0]['id']}&second={pets[1]['id']}'>Compare {pets[0]['name']} vs {pets[1]['name']}</a></li>"
+        if len(pets) >= 3:
+            html += f"<li><a href='/compare_results?first={pets[1]['id']}&second={pets[2]['id']}'>Compare {pets[1]['name']} vs {pets[2]['name']}</a></li>"
+        html += "</ul>"
+
+        return html
+    except Exception as e:
+        return f"Error: {str(e)}"
+    finally:
+        conn.close()
 
 
 # Homepage
@@ -186,8 +214,8 @@ def pet_profile(pet_name):
         ).fetchall()
     except Exception:
         pet, reviews = None, []
-    finally:
-        conn.close()
+       
+    conn.close()
 
     if pet is None:
         return render_template('404.html'), 404
@@ -200,57 +228,85 @@ def pet_profile(pet_name):
 def compare():
     conn = get_db()
     try:
-        pets = conn.execute('SELECT id, name FROM Pets').fetchall()
+        pets = conn.execute('''SELECT id,
+                            name FROM Pets
+                            ORDER BY name
+                            ''').fetchall()
+        # Get some popular comparisons for the page
+        popular_comparisons = [
+            (1, 2, "Hamster", "Guinea Pig"),
+            (3, 4, "Betta Fish", "Leopard Gecko"),
+            (1, 5, "Hamster", "Parakeet")
+        ]
+
     except Exception as e:
-        print("Error:", e)
+        print("Error fetching pets:", e)
         pets = []
+        popular_comparisons = []
 
         conn.close()
 
-    return render_template('compare.html', pets=pets)
+    return render_template('compare.html',
+                           pets=pets, popular_comparisons=popular_comparisons)
 
 
-@app.route('/compare_results')
-def compare_results():
-    first_id = request.args.get('first')
-    second_id = request.args.get('second')
-
+# Comparison results page
+# Update the comparison results route to match your form action
+@app.route('/comparison_results')
+def comparison_results():  # Changed from compare_results to comparison_results
+    # Get the pet names from URL parameters
+    first_name = request.args.get('first', '')
+    second_name = request.args.get('second', '')
+    
+    # Basic validation
+    if not first_name or not second_name:
+        return render_template('error.html',
+                               message='Please select two pets to compare.')
+    
+    if first_name == second_name:
+        return render_template('error.html',
+                               message='Please select two different pets to compare.')
+    
     conn = get_db()
-    pets = []
-
+    
     try:
-        # Get first pet
-        if first_id:
-            p1 = conn.execute('''
-                SELECT Pets.*, Species.name AS species
-                FROM Pets
-                JOIN Species ON Pets.species_id = Species.id
-                WHERE Pets.id = ?
-            ''', (first_id,)).fetchone()
-            if p1:
-                pets.append(p1)
+        # Get pets by name instead of ID
+        pet1 = conn.execute('SELECT name FROM Pets WHERE name = ?',
+                            (first_name,)).fetchone()
+        pet2 = conn.execute('SELECT name FROM Pets WHERE name = ?',
+                            (second_name,)).fetchone()
+        
+        # Check if pets were found
+        if not pet1 or not pet2:
+            not_found = []
+            if not pet1:
+                not_found.append(first_name)
+            if not pet2:
+                not_found.append(second_name)
+            return render_template('error.html', 
+                                   message=f"Pets not found: {', '.join(not_found)}")
 
-        # Get second pet
-        if second_id:
-            p2 = conn.execute('''
-                SELECT Pets.*, Species.name AS species
-                FROM Pets
-                JOIN Species ON Pets.species_id = Species.id
-                WHERE Pets.id = ?
-            ''', (second_id,)).fetchone()
-            if p2:
-                pets.append(p2)
+        # Convert to dictionaries with default values for None fields
+        pet1_dict = dict(pet1)
+        pet2_dict = dict(pet2)
+
+        # Set default values for None fields to avoid comparison errors
+        numeric_fields = ['cost_setup', 'daily_time_min', 'difficulty']
+        for field in numeric_fields:
+            if pet1_dict.get(field) is None:
+                pet1_dict[field] = 0
+            if pet2_dict.get(field) is None:
+                pet2_dict[field] = 0
+
+        return render_template('comparison_results.html',
+                               pet1=pet1_dict, pet2=pet2_dict)
 
     except Exception as e:
-        print("Compare error:", e)
-        pets = []
+        print("Error in comparison:", e)
+        return render_template('error.html',
+                               message='An error occurred while comparing pets.')
     finally:
         conn.close()
-
-    if len(pets) == 2:
-        return render_template('comparison_results.html', pet1=pets[0], pet2=pets[1])
-    else:
-        return redirect('/compare')
 
 
 # Add Review with validation
@@ -266,7 +322,7 @@ def add_review():
         finally:
             conn.close()
         return render_template('add_review.html', pets=pets)
-    
+
     elif request.method == 'POST':
         pet_id = request.form.get('pet_id')
         reviewer_name = request.form.get('reviewer_name') or "Anonymous"
@@ -300,13 +356,22 @@ def add_review():
 def api_pets():
     conn = get_db()
     try:
-        rows = conn.execute('SELECT pets.id, pets.name, species.name AS species_name FROM Pets JOIN Species ON pets.species_id = species.id').fetchall()
-        data = [dict(r) for r in rows]
-    except Exception:
+        rows = conn.execute('''
+            SELECT
+                p.id, p.name, p.lifespan, p.difficulty, p.cost_setup,
+                p.daily_time_min, p.space_required, p.temperament, p.notes,
+                s.name as species_name
+            FROM Pets p
+            LEFT JOIN Species s ON p.species_id = s.id
+            ORDER BY p.name
+        ''').fetchall()
+        data = [dict(row) for row in rows]
+    except Exception as e:
+        print("Error in API:", e)
         data = []
     finally:
         conn.close()
-    return {"pets": data}
+    return jsonify({"pets": data})
 
 
 # Custom 404 error handler
