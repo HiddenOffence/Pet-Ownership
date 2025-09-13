@@ -17,13 +17,20 @@ def get_db():
     id INT AUTO_INCREMENT PRIMARY KEY,
     name TEXT NOT NULL,
     species_id INT NOT NULL,
+    lifespan TEXT,
+    difficulty INTEGER,
+    cost_setup DECIMAL(6,2),
+    daily_time_minutes INTEGER,
+    space_required TEXT,
+    temperament TEXT,
+    notes TEXT,
     FOREIGN KEY (species_id) REFERENCES Species(id));
               ''')
 
     c.execute('''CREATE TABLE IF NOT EXISTS Species (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
-    description TEXT); 
+    description TEXT);
     ''')
 
     c.execute('''CREATE TABLE IF NOT EXISTS Attributes (
@@ -34,7 +41,7 @@ def get_db():
     c.execute('''CREATE TABLE IF NOT EXISTS Places (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
-    adress TEXT);
+    address TEXT);
     ''')
 
     c.execute('''CREATE TABLE IF NOT EXISTS pet_attributes (
@@ -60,6 +67,7 @@ def get_db():
     pet_name TEXT NOT NULL,
     species TEXT NOT NULL,
     comment TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (pet_id) REFERENCES Pets(id));
     ''')
 
@@ -99,13 +107,21 @@ def home():
                            featured=featured, reviews=latest_reviews)
 
 
-# Browse pet page
+# Browse pet page - search-GPT
 @app.route('/browse')
 def browse():
     search_text = request.args.get('search')
     difficulty_choice = request.args.get('difficulty')
 
-    sql = '''SELECT id, name, species_id FROM Pets'''
+    sql = '''
+    SELECT id,
+    name,
+    species_id,
+    lifespan,
+    cost_setp,
+    daily_time_min
+    FROM Pets WHERE 1=1'''
+
     filters = []
     params = []
 
@@ -139,12 +155,18 @@ def browse():
 
 
 # About page
-@app.route('/about_pets')
-def about_pets():
-    return render_template('about_pets.html', title='ABOUT_PETS', about_pets=about_pets)
+@app.route('/about')
+def about():
+    about_content = {
+        "title": "About Our Pet Guide",
+        "mission": "Helping you find the perfect low-maintenance pet companion",
+        "description": "Our platform provides comprehensive information about various pets to help you make an informed decision."
+    }
+    return render_template('about_pets.html', about=about_content)
 
 
 # Pets profile page
+@app.route('/pet/<pet_name>')
 def pet_profile(pet_name):
     conn = get_db()
     try:
@@ -152,11 +174,13 @@ def pet_profile(pet_name):
                            name,
                            species_id
                            FROM Pets
+                           JOIN Species ON Pets.species_id = Species.id
                            WHERE name = ?''', (pet_name,)).fetchone()
         reviews = conn.execute(
             '''SELECT reviewer_name,
             rating,
-            comment
+            comment,
+            created_at
             FROM Reviews WHERE pet_name = ? ORDER BY created_at DESC''',
             (pet_name,)
         ).fetchall()
@@ -174,62 +198,102 @@ def pet_profile(pet_name):
 # Comparison tool
 @app.route('/compare')
 def compare():
-    first_name = request.args.get('first')
-    second_name = request.args.get('second')
-
     conn = get_db()
-    pets  = []
-
     try:
-        if first_name:
-            p1 = conn.execute('''SELECT id,
-                              name,
-                              species_id
-                              FROM Pets
-                              WHERE name = ?''', (first_name,)).fetchone()
-            if p1: pets.append(p1)
-
-        if second_name:
-            p2 = conn.execute('SELECT * FROM Pets WHERE name = ?', (second_name,)).fetchone()
-            if p2: pets.append(p2)
-
-        if len(pets) < 2:
-            pets = conn.execute('SELECT * FROM Pets LIMIT 2').fetchall()
-    except Exception:
+        pets = conn.execute('SELECT id, name FROM Pets').fetchall()
+    except Exception as e:
+        print("Error:", e)
         pets = []
-    finally:
+
         conn.close()
 
     return render_template('compare.html', pets=pets)
 
 
+@app.route('/compare_results')
+def compare_results():
+    first_id = request.args.get('first')
+    second_id = request.args.get('second')
+
+    conn = get_db()
+    pets = []
+
+    try:
+        # Get first pet
+        if first_id:
+            p1 = conn.execute('''
+                SELECT Pets.*, Species.name AS species
+                FROM Pets
+                JOIN Species ON Pets.species_id = Species.id
+                WHERE Pets.id = ?
+            ''', (first_id,)).fetchone()
+            if p1:
+                pets.append(p1)
+
+        # Get second pet
+        if second_id:
+            p2 = conn.execute('''
+                SELECT Pets.*, Species.name AS species
+                FROM Pets
+                JOIN Species ON Pets.species_id = Species.id
+                WHERE Pets.id = ?
+            ''', (second_id,)).fetchone()
+            if p2:
+                pets.append(p2)
+
+    except Exception as e:
+        print("Compare error:", e)
+        pets = []
+    finally:
+        conn.close()
+
+    if len(pets) == 2:
+        return render_template('comparison_results.html', pet1=pets[0], pet2=pets[1])
+    else:
+        return redirect('/compare')
+
+
 # Add Review with validation
 @app.route('/add_review', methods=['GET', 'POST'])
 def add_review():
-    pet_name = request.form.get('pet_name')
-    reviewer_name = request.form.get('reviewer_name') or "Anonymous"
-    rating = request.form.get('rating') or "5"
-    comment = request.form.get('comment') or ""
+    if request.method == 'GET':
+        conn = get_db()
+        try:
+            pets = conn.execute('SELECT id, name FROM Pets').fetchall()
+        except Exception as e:
+            print("Error:", e)
+            pets = []
+        finally:
+            conn.close()
+        return render_template('add_review.html', pets=pets)
+    
+    elif request.method == 'POST':
+        pet_id = request.form.get('pet_id')
+        reviewer_name = request.form.get('reviewer_name') or "Anonymous"
+        rating = request.form.get('rating') or "5"
+        comment = request.form.get('comment') or ""
 
-    try:
-        rating = int(rating)
-        if rating < 1 or rating > 5:
-            rating = 5
-    except:
-        return redirect(url_for('home'))
+        try:
+            rating = int(rating)
+            if rating < 1 or rating > 5:
+                rating = 5
+        except:
+            return redirect('/')
 
-    conn = get_db()
-    try:
-        conn.execute('INSERT INTO Reviews (pet_name, reviewer_name, rating, comment) VALUES (?,?,?,?)',
-                     (pet_name, reviewer_name, rating, comment))
-        conn.commit()
-    except Exception:
-        # if insert fails, don't crash - redirect to pet page
-        conn.rollback()
+        conn = get_db()
+        try:
+            conn.execute('INSERT INTO Reviews (pet_id, reviewer_name, rating, comment) VALUES (?,?,?,?)',
+                         (pet_id, reviewer_name, rating, comment))
+            conn.commit()
+        except Exception as e:
+            print("Error adding review:", e)
+            conn.rollback()
+            return redirect('/add_review')
+        finally:
+            conn.close()
 
-        conn.close()
-
-        return redirect(url_for('pet_profile', pet_name=pet_name))
+        # redirects to thank-you page
+        return render_template('review_thankyou.html')
 
 
 @app.route('/api/pets')

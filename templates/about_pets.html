@@ -1,39 +1,46 @@
 {% extends 'layout.html' %}
-{% block title %}{{ pet.name }} — Profile{% endblock %}
+{% block title %}About — Your Perfect Pet{% endblock %}
 {% block content %}
-<article class="profile card">
-  <h2>{{ pet.name }}</h2>
-  <p><strong>Species:</strong> {{ pet.species_name }} (life: {{ pet.typical_lifespan }})</p>
-  <ul>
-    <li>Setup cost: ${{ pet.cost_setup }}</li>
-    <li>Daily time: {{ pet.daily_time_minutes }} minutes/day</li>
-    <li>Space needed: {{ pet.space_required }}</li>
-    <li>Temperament: {{ pet.temperament }}</li>
-    <li>Notes: {{ pet.notes }}</li>
-  </ul>
+<div class="about-container">
+  <h2>About Our Pet Guide</h2>
+  
+  <div class="mission-section">
+    <h3>Our Mission</h3>
+    <p>Bringing a pet into your home is a joyous occasion, but it's also a big decision. Many prospective pet owners, especially first-timers or those with busy lifestyles, seek companions that fit seamlessly into their lives without overwhelming demands.</p>
+    <p>Our mission is to simplify this process, helping you make an informed choice that leads to a happy, long-term relationship with your new furry, finned, or scaled friend.</p>
+  </div>
 
-  <h3>Community Reviews {% if avg_rating %} • Average: {{ avg_rating }}/5{% endif %}</h3>
-  <section class="reviews">
-    {% for r in reviews %}
-      <div class="review">
-        <strong>{{ r.reviewer_name }}</strong> — {{ r.rating }}/5
-        <p>{{ <r class="comment"></r> }}</p>
-        <small>{{ r.created_at }}</small>
-      </div>
-    {% else %}
-      <p>No reviews yet — be the first to add one!</p>
-    {% endfor %}
-  </section>
-
-  <h4>Add a review</h4>
-  <form action="/templates/add_review.html" method="post" class="review-form">
-    <input type="hidden" name="pet_id" value="{{ pet.id }}">
-    <input name="reviewer_name placeholder="Your name">
-    <select name="rating">
-      <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
-    </select>
-    <textarea name="comment" placeholder="Share your experience"></textarea>
-    <button>Submit Review</button>
-  </form>
-</article>
+  <div class="features-section">
+    <h3>How We Help You Find Your Match</h3>
+    
+    <div class="feature">
+      <h4>Reliable Pet Data</h4>
+      <p>We compile comprehensive information from trusted sources like ASPCA and PetMD. Our database stores details on temperament, space needs, costs, and care demands.</p>
+    </div>
+    
+    <div class="feature">
+      <h4>Intuitive Search & Filter</h4>
+      <p>We enable you to filter pets by criteria such as living space, budget, and maintenance level. This ensures you quickly discover animals that align with your lifestyle.</p>
+    </div>
+    
+    <div class="feature">
+      <h4>Side-by-Side Comparisons</h4>
+      <p>Our unique comparison tool lets you evaluate different pets head-to-head, highlighting key differences in care, cost, and suitability.</p>
+    </div>
+    
+    <div class="feature">
+      <h4>Community Reviews</h4>
+      <p>Benefit from the experiences of other pet owners. User reviews provide real-world insights into daily care, behavior, and overall ownership satisfaction.</p>
+    </div>
+  </div>
+  
+  <div class="cta-section">
+    <h3>Ready to Find Your Perfect Match?</h3>
+    <p>Start your journey today and welcome a new member into your family!</p>
+    <div class="cta-buttons">
+      <a href="/browse" class="btn-primary">Browse Pets</a>
+      <a href="/compare" class="btn-secondary">Compare Pets</a>
+    </div>
+  </div>
+</div>
 {% endblock %}

@@ -1,23 +1,35 @@
 {% extends "layout.html" %}
+{% block title %}Comparison Results{% endblock %}
 {% block content %}
-<link rel="stylesheet" href="/static/css/style.css">
+
 <h2>Comparison Results</h2>
 <table class="comparison-table">
-    <tr>
-        <th>Feature</th>
-        <th>{{ pet1.name }}</th>
-        <th>{{ pet2.name }}</th>
-    </tr>
-    <tr>
-        <td>Species</td>
-        <td>{{ pet1.species }}</td>
-        <td>{{ pet2.species }}</td>
-    </tr>
-    <tr>
-        <td>Attributes</td>
-        <td>{{ pet1.attributes or "None" }}</td>
-        <td>{{ pet2.attributes or "None" }}</td>
-    </tr>
+  <tr>
+    <th>Feature</th>
+    <th>{{ pet1.name }}</th>
+    <th>{{ pet2.name }}</th>
+  </tr>
+  <tr>
+    <td>Species</td>
+    <td>{{ pet1.species }}</td>
+    <td>{{ pet2.species }}</td>
+  </tr>
+  <tr>
+    <td>Lifespan</td>
+    <td>{{ pet1.lifespan }}</td>
+    <td>{{ pet2.lifespan }}</td>
+  </tr>
+  <tr>
+    <td>Setup Cost</td>
+    <td>${{ pet1.cost_setup }}</td>
+    <td>${{ pet2.cost_setup }}</td>
+  </tr>
+  <tr>
+    <td>Daily Care</td>
+    <td>{{ pet1.daily_time }} mins</td>
+    <td>{{ pet2.daily_time }} mins</td>
+  </tr>
 </table>
-<a href="{{ url_for('comparison')}}" class="button">Compare Again</a>
+<a href="/compare" class="button">Compare Again</a>
+
 {% endblock %}

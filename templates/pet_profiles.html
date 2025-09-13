@@ -1,44 +1,40 @@
 {% extends "layout.html" %}
+{% block title %}{{ pet.name }} — Profile{% endblock %}
 {% block content %}
-<link rel="stylesheet" href="/static/css/style.css">
+
 <div class="pet-profile">
-    <h2>{{ pet.name }}</h2>
-    <p><strong>Species:</strong> {{ pet.species }} ({{ pet.species_desc }})</p>
+  <h2>{{ pet.name }}</h2>
+  <p><strong>Species:</strong> {{ pet.species }} ({{ pet.species_desc }})</p>
+  <p><strong>Lifespan:</strong> {{ pet.lifespan }}</p>
+  <p><strong>Temperament:</strong> {{ pet.temperament }}</p>
+  <p><strong>Setup Cost:</strong> ${{ pet.cost_setup }}</p>
+  <p><strong>Daily Care:</strong> {{ pet.daily_time }} mins</p>
 
-    <h3>Attributes</h3>
-    <ul>
-        {% for attr in attributes %}
-        <li>{{ attr.name }}</li>
-        {% else %}
-        <li>No attributes listed</li>
-        {% endfor %}
-    </ul>
-
-    <h3>Avaliable At</h3>
-    <ul>
-        {% for place in places %}
-        <li>{{ place.name }} - ${{ "%.2f"|format(place.price) }}</li>
-        {% endfor %}
-    </ul>
-    
-    <h3>Reviews</h3>
+  <h3>Reviews</h3>
+  <div class="reviews">
     {% for review in reviews %}
     <div class="review">
-        <div class="review-header">
-            <strong>{{ review.reviewer_name }}</strong>
-            <span class="stars">
-                {{ "★" * review.rating }}{{ "☆" * (5 - review.rating) }}
-            </span>
-        </div>
-        <h3>Add a Review</h3>
-        <form action="{{ url_for('add_review') }}" method="post">
-            <input type="hidden" name="pet_name" value="{{ pet.name }}">
-            <input type="text" name="reviewer_name" placeholder="Your name">
-            <input type="number" name="rating" min="1" max="5" placeholder="Rating (1-5)">
-            <textarea name="comment" placeholder="Your review"></textarea>
-            <button type="submit">Submit</button>
-        </form>
+      <div class="review-header">
+        <strong>{{ review.reviewer_name }}</strong>
+        <span class="stars">
+          {{ "★" * review.rating }}{{ "☆" * (5 - review.rating) }}
+        </span>
+      </div>
+      <p class="comment">{{ review.comment }}</p>
     </div>
+    {% else %}
+    <p>No reviews yet. Be the first to add one!</p>
     {% endfor %}
+  </div>
+
+  <h3>Add a Review</h3>
+  <form action="/add_review" method="post" class="review-form">
+    <input type="hidden" name="pet_name" value="{{ pet.name }}">
+    <input type="text" name="reviewer_name" placeholder="Your name">
+    <input type="number" name="rating" min="1" max="5" placeholder="Rating (1-5)">
+    <textarea name="comment" placeholder="Write your review..."></textarea>
+    <button type="submit">Submit Review</button>
+  </form>
 </div>
+
 {% endblock %}

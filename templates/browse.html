@@ -1,30 +1,28 @@
 {% extends 'layout.html' %}
-{% block title %}Browse — Your Perfect Pet{% endblock %}
+{% block title %}Browse Pets{% endblock %}
 {% block content %}
-<h2>Browse Pets</h2>
 
-<form class="filters" action="{{ url_for('browse') }}">
-  <input name="search" placeholder="Search..." value="{{ search or '' }}">
+<h2>Browse Pets</h2>
+<form method="get">
+  <input type="text" name="search" placeholder="Search by name or temperament" value="{{ search or '' }}">
   <select name="difficulty">
     <option value="">Any difficulty</option>
     <option value="1">Easy</option>
-    <option value="2">Moderate</option>
-    <option value="3">Challenging</option>
+    <option value="2">Medium</option>
+    <option value="3">Hard</option>
   </select>
-  <input name="max_cost" placeholder="Max setup cost $" type="number" min="0">
-  <button>Apply</button>
+  <button type="submit">Filter</button>
 </form>
 
 <div class="grid">
   {% for pet in pets %}
     <article class="card">
-      <h4>{{ pet['name'] }}</h4>
-      <p>Type: {{pet['type']}}</p>
-      <a href="{{ url_for('pet_profile', pet_name=pet['name']) }}">View Profile</a>
-      <p>{{ pet.species_name }} • ${{ pet.cost_setup }} • {{ pet.space_required }}</p>
+      <h4><a href="/pet_profile, pet_name=pet.name">{{ pet.name }}</a></h4>
+      <p>• Lifespan: {{ pet.lifespan }} • Care: {{ pet.daily_time }} mins/day</p>
     </article>
   {% else %}
-    <p>No pets matched your filters.</p>
+    <p>No pets found.</p>
   {% endfor %}
 </div>
+
 {% endblock %}
