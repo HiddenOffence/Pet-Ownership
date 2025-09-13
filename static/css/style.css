@@ -42,16 +42,22 @@ body {
   text-decoration: none;
   font-weight: bold;
   display: inline-block;
+  color: black;
+}
+
+.btn-primary:hover, .btn-secondary:hover{
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    color: var(--accent);
+    text-decoration: underline;
 }
 
 .btn-primary {
-  background: var(--accent);
   color: black;
   border: 2px solid var(--accent);
 }
 
 .btn-secondary {
-  background: var(--accent);
   color: black;
   border: 2px solid var(--accent);
 }
@@ -606,25 +612,6 @@ button {
     display: flex;
     gap: 1rem;
     justify-content: center;
-}
-
-.btn-primary, .btn-secondary {
-    padding: 0.75rem 1.5rem;
-    border-radius: 6px;
-    text-decoration: none;
-    font-weight: bold;
-    display: inline-block;
-}
-
-.btn-primary {
-    background: var(--accent);
-    color: white;
-}
-
-.btn-secondary {
-    background: transparent;
-    color: var(--accent);
-    border: 2px solid var(--accent);
 }
 
 /* Responsive design */

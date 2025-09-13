@@ -251,31 +251,30 @@ def compare():
 
 
 # Comparison results page
-# Update the comparison results route to match your form action
 @app.route('/comparison_results')
-def comparison_results():  # Changed from compare_results to comparison_results
+def comparison_results():
     # Get the pet names from URL parameters
     first_name = request.args.get('first', '')
     second_name = request.args.get('second', '')
-    
+
     # Basic validation
     if not first_name or not second_name:
         return render_template('error.html',
                                message='Please select two pets to compare.')
-    
+
     if first_name == second_name:
         return render_template('error.html',
                                message='Please select two different pets to compare.')
-    
+
     conn = get_db()
-    
+
     try:
         # Get pets by name instead of ID
         pet1 = conn.execute('SELECT name FROM Pets WHERE name = ?',
                             (first_name,)).fetchone()
         pet2 = conn.execute('SELECT name FROM Pets WHERE name = ?',
                             (second_name,)).fetchone()
-        
+
         # Check if pets were found
         if not pet1 or not pet2:
             not_found = []
