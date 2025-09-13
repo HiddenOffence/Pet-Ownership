@@ -30,9 +30,14 @@
                 {{ "★" * review.rating }}{{ "☆" * (5 - review.rating) }}
             </span>
         </div>
-        {% if review.comment %}
-        <p class="comment">{{ review.comment }}</p>
-        {% endif %}
+        <h3>Add a Review</h3>
+        <form action="{{ url_for('add_review') }}" method="post">
+            <input type="hidden" name="pet_name" value="{{ pet.name }}">
+            <input type="text" name="reviewer_name" placeholder="Your name">
+            <input type="number" name="rating" min="1" max="5" placeholder="Rating (1-5)">
+            <textarea name="comment" placeholder="Your review"></textarea>
+            <button type="submit">Submit</button>
+        </form>
     </div>
     {% endfor %}
 </div>

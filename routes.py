@@ -79,11 +79,24 @@ def close_db(exception):
 def home():
     conn = get_db()
     try:
-        featured = conn.execute('SELECT pets, species.name AS species_name FROM Pets AS pets JOIN Species AS species ON pets.species_id = species.id ORDER BY pets.cost_setup ASC LIMIT 3').fetchall()
+        featured = conn.execute(
+            '''SELECT name,
+            lifespan,
+            temperament,
+            cost_setup FROM Pets
+            ORDER BY difficulty ASC LIMIT 3
+        ''').fetchall()
+        latest_reviews = conn.execute(
+            '''SELECT pet_name, 
+            reviewer_name, rating,
+            comment FROM Reviews
+            ORDER BY created_at DESC LIMIT 3
+        ''').fetchall()
     except Exception:
-        featured = []
-    conn.close()
-    return render_template('home.html', title='HOME', featured=featured)
+        featured, latest_reviews = [], []
+        conn.close()
+    return render_template('home.html', title='HOME',
+                           featured=featured, reviews=latest_reviews)
 
 
 # Browse pet page
@@ -92,24 +105,19 @@ def browse():
     search_text = request.args.get('search')
     difficulty_choice = request.args.get('difficulty')
 
-    sql = '''SELECT pets, species.name AS species_name, AVG(reviews.rating) AS avg_rating
-    FROM Pets AS pets
-    JOIN Species AS species ON pets.species_id = species.id
-    LEFT JOIN Reviews AS reviews ON reviews.pet_id = pets.id
-    '''
+    sql = '''SELECT id, name, species_id FROM Pets'''
     filters = []
     params = []
 
-    if search_text is not None and search_text.strip() != "":
-        filters.append('(pets.name LIKE ? OR species.name LIKE ? OR pets.temperament LIKE ?)')
-        term = f'%{search_text.strip()}%'
-        params.extend([term, term, term])
+    if search_text and search_text.strip() != "":
+        filters.append('(name LIKE ? OR temperament LIKE ?)')
+        term = f"%{search_text.strip()}%"
+        params.extend([term, term])
 
-    if difficulty_choice is not None and difficulty_choice != "":
-        # try/except used to avoid crash if it's not a number
+    if difficulty_choice and difficulty_choice.strip() != "":
         try:
             diff_num = int(difficulty_choice)
-            filters.append('species.general_difficulty = ?')
+            filters.append('difficulty = ?')
             params.append(diff_num)
         except:
             pass
@@ -117,14 +125,15 @@ def browse():
     if filters:
         sql += ' WHERE ' + ' AND '.join(filters)
 
-    sql += ' GROUP BY pets.id ORDER BY pets.cost_setup ASC;'
+    sql += ' ORDER BY cost_setup ASC'
 
     conn = get_db()
     try:
         pets = conn.execute(sql, params).fetchall()
     except Exception:
         pets = []
-    conn.close()
+
+        conn.close()
 
     return render_template('browse.html', pets=pets, search=search_text)
 
@@ -132,62 +141,60 @@ def browse():
 # About page
 @app.route('/about_pets')
 def about_pets():
-    return render_template('about_pets.html', title='ABOUT_PETS', pet=pet, about_pets=about_pets)
+    return render_template('about_pets.html', title='ABOUT_PETS', about_pets=about_pets)
 
 
 # Pets profile page
-@app.route('/pet/<pet_name>')
 def pet_profile(pet_name):
     conn = get_db()
     try:
-        pet = conn.execute('''
-            SELECT pets.id, species.name AS species_name, species.typical_lifespan, species.general_difficulty
-            FROM Pets AS pets JOIN Species AS species ON pets.species_id = species.id
-            WHERE pets.id = ?
-        ''', (pet_name,)).fetchone()
-
-        reviews = conn.execute('SELECT * FROM Reviews WHERE pet_id = ? ORDER BY created_at DESC', (pet_name,)).fetchall()
-        # calculate average rating safely
-        avg = conn.execute('SELECT AVG(rating) as avg_rating FROM Reviews WHERE pet_id = ?', (pet_name,)).fetchone()
-        avg_rating = round(avg["avg_rating"], 1) if avg["avg_rating"] is not None else None
+        pet = conn.execute('''SELECT id,
+                           name,
+                           species_id
+                           FROM Pets
+                           WHERE name = ?''', (pet_name,)).fetchone()
+        reviews = conn.execute(
+            '''SELECT reviewer_name,
+            rating,
+            comment
+            FROM Reviews WHERE pet_name = ? ORDER BY created_at DESC''',
+            (pet_name,)
+        ).fetchall()
     except Exception:
+        pet, reviews = None, []
+    finally:
         conn.close()
-        return render_template('404.html'), 404
-    conn.close()
 
     if pet is None:
         return render_template('404.html'), 404
 
-    return render_template('pet.html', pet=pet, reviews=reviews, avg_rating=avg_rating)
+    return render_template('pet.html', pet=pet, reviews=reviews)
 
 
 # Comparison tool
 @app.route('/compare')
 def compare():
-    first_id = request.args.get('first')
-    second_id = request.args.get('second')
-    conn = get_db()
-    try:
-        pets = []
-        # get first if provided
-        if first_id is not None and first_id != "":
-            try:
-                p1 = conn.execute('SELECT pets.*, species.name as species_name FROM Pets pets JOIN Species species ON pets.species_id = species.id WHERE pets.id = ?', (int(first_id),)).fetchone()
-                if p1:
-                    pets.append(p1)
-            except:
-                pass
-        if second_id is not None and second_id != "":
-            try:
-                p2 = conn.execute('SELECT pets.*, species.name as species_name FROM Pets pets JOIN Species species ON pets.species_id = species.id WHERE pets.id = ?', (int(second_id),)).fetchone()
-                if p2:
-                    pets.append(p2)
-            except:
-                pass
+    first_name = request.args.get('first')
+    second_name = request.args.get('second')
 
-        # fallback: first two pets
+    conn = get_db()
+    pets  = []
+
+    try:
+        if first_name:
+            p1 = conn.execute('''SELECT id,
+                              name,
+                              species_id
+                              FROM Pets
+                              WHERE name = ?''', (first_name,)).fetchone()
+            if p1: pets.append(p1)
+
+        if second_name:
+            p2 = conn.execute('SELECT * FROM Pets WHERE name = ?', (second_name,)).fetchone()
+            if p2: pets.append(p2)
+
         if len(pets) < 2:
-            pets = conn.execute('SELECT pets.*, species.name as species_name FROM Pets pets JOIN Species species ON pets.species_id = species.id LIMIT 2').fetchall()
+            pets = conn.execute('SELECT * FROM Pets LIMIT 2').fetchall()
     except Exception:
         pets = []
     finally:
@@ -204,7 +211,6 @@ def add_review():
     rating = request.form.get('rating') or "5"
     comment = request.form.get('comment') or ""
 
-        # validate pet_id and rating using try/except so app doesn't crash
     try:
         rating = int(rating)
         if rating < 1 or rating > 5:
@@ -214,7 +220,8 @@ def add_review():
 
     conn = get_db()
     try:
-        conn.execute('INSERT INTO Reviews (pet_name, reviewer_name, rating, comment) VALUES (?,?,?,?)', (pet_name, reviewer_name, rating, comment))
+        conn.execute('INSERT INTO Reviews (pet_name, reviewer_name, rating, comment) VALUES (?,?,?,?)',
+                     (pet_name, reviewer_name, rating, comment))
         conn.commit()
     except Exception:
         # if insert fails, don't crash - redirect to pet page
@@ -236,6 +243,7 @@ def api_pets():
     finally:
         conn.close()
     return {"pets": data}
+
 
 # Custom 404 error handler
 @app.errorhandler(404)

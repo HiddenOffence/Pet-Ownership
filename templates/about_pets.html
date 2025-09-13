@@ -16,8 +16,8 @@
   <section class="reviews">
     {% for r in reviews %}
       <div class="review">
-        <strong>{{ r.author }}</strong> — {{ r.rating }}/5
-        <p>{{ r.body }}</p>
+        <strong>{{ r.reviewer_name }}</strong> — {{ r.rating }}/5
+        <p>{{ <r class="comment"></r> }}</p>
         <small>{{ r.created_at }}</small>
       </div>
     {% else %}
@@ -26,13 +26,13 @@
   </section>
 
   <h4>Add a review</h4>
-  <form action="{{ url_for('add_review') }}" method="post" class="review-form">
+  <form action="/templates/add_review.html" method="post" class="review-form">
     <input type="hidden" name="pet_id" value="{{ pet.id }}">
-    <input name="author" placeholder="Your name">
+    <input name="reviewer_name placeholder="Your name">
     <select name="rating">
       <option>5</option><option>4</option><option>3</option><option>2</option><option>1</option>
     </select>
-    <textarea name="body" placeholder="Share your experience"></textarea>
+    <textarea name="comment" placeholder="Share your experience"></textarea>
     <button>Submit Review</button>
   </form>
 </article>

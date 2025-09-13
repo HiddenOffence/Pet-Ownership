@@ -7,12 +7,12 @@
     </head>
     <body>
     <h2>Compare Pets</h2>
-    <form action="{{ url_for('compare', id=pets.id) }}" method="POST">
+    <form action="{{ url_for('compare') }}" method="get">
         <div class="comparison-select">
             <select name="pet1" required>
                 <option value="">Select first pet</option>
                 {% for pet in pets %}
-                <option value="{{ pet.id }}">{{ pet.name }}</option>
+                <option value="{{ pet.name }}">{{ pet.name }}</option>
                 {% endfor %}
             </select>
             
@@ -21,7 +21,7 @@
             <select name="pet2" required>
                 <option value="">Select second pet</option>
                 {% for pet in pets %}
-                <option value="{{ pet.id }}">{{ pet.name }}</option>
+                <option value="{{ pet.name }}">{{ pet.name }}</option>
                 {% endfor %}
             </select>
         </div>

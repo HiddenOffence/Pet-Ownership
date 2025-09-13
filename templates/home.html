@@ -1,10 +1,11 @@
 {% extends 'layout.html' %}
 {% block title %}Home — Your Perfect Pet{% endblock %}
 {% block content %}
+
 <section class="hero">
   <h2>Which Pets Are Easiest to Care For?</h2>
   <p class="lead">Find a low-maintenance companion that suits your home and life.</p>
-  <form action="{{ url_for('browse') }}" class="search-form">
+  <form action="/browse" class="search-form">
     <input type="text" name="search" placeholder="Search pets, species or traits">
     <button>Search</button>
   </form>
@@ -15,24 +16,28 @@
   <div class="grid">
     {% for p in featured %}
       <article class="card">
-        <h4><a href="{{ url_for('pet_profile', pet_id=p.id) }}">{{ p.name }}</a></h4>
-        <p>{{ p.species_name }} • Setup: ${{ p.cost_setup }}</p>
+        <h4><a href="/pet_profile, pet_name=p.name">{{ p.name }}</a></h4>
+        <p>Setup Cost: ${{ p.cost_setup }} • Lifespan: {{ p.lifespan }}</p>
       </article>
     {% endfor %}
   </div>
 </section>
 
 <section>
-  <h3>Recommended for you</h3>
+  <h3>Latest Reviews</h3>
   <div class="grid">
-    {% for r in recommendations %}
-      <article class="card">
-        <h4><a href="{{ url_for('pet_profile', pet_id=r.id) }}">{{ r.name }}</a></h4>
-        <p>{{ r.species_name }} • Avg rating: {{ r.avg_rating or '—' }}</p>
+    {% for r in reviews %}
+      <article class="card review">
+        <p class="comment">“{{ r.comment }}”</p>
+        <p class="reviewer">— {{ r.reviewer_name }} on 
+          <a href="/pet_profile, pet_name=r.pet_name">{{ r.pet_name }}</a>
+        </p>
+        <span class="rating">Rating: {{ r.rating }}/5</span>
       </article>
     {% else %}
-      <p>No recommendations available.</p>
+      <p>No reviews yet. Be the first to add one!</p>
     {% endfor %}
   </div>
 </section>
+
 {% endblock %}

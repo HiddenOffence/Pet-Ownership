@@ -18,9 +18,10 @@
 <div class="grid">
   {% for pet in pets %}
     <article class="card">
-      <h3><a href="{{ url_for('pet_profile', pet_id=pet.id) }}">{{ pet.name }}</a></h3>
+      <h4>{{ pet['name'] }}</h4>
+      <p>Type: {{pet['type']}}</p>
+      <a href="{{ url_for('pet_profile', pet_name=pet['name']) }}">View Profile</a>
       <p>{{ pet.species_name }} • ${{ pet.cost_setup }} • {{ pet.space_required }}</p>
-      <p>Avg rating: {{ pet.avg_rating or '—' }}</p>
     </article>
   {% else %}
     <p>No pets matched your filters.</p>
