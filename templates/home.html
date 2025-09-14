@@ -3,40 +3,96 @@
 {% block content %}
 
 <section class="hero">
-  <h2>Which Pets Are Easiest to Care For?</h2>
-  <p class="lead">Find a low-maintenance companion that suits your home and life.</p>
-  <form action="/browse" class="search-form">
-    <input type="text" name="search" placeholder="Search pets, species or traits">
-    <button>Search</button>
-  </form>
+  <div class="hero-content">
+    <h2>Find Your Perfect Pet Companion</h2>
+    <p class="lead">Discover which pets are easiest to care for and find a low-maintenance companion that suits your home and lifestyle.</p>
+    <form action="/browse" class="search-form">
+      <input type="text" name="search" placeholder="Search pets by name, species or traits">
+      <button type="submit">Search</button>
+    </form>
+  </div>
+  <div class="hero-image">
+    <img src="/static/images/search_pets.jpg" alt="Happy with pets">
+  </div>
 </section>
 
-<section>
-  <h3>Featured Pets</h3>
-  <div class="grid">
+<section class="features-section">
+  <h2>Why Use Our Pet Guide?</h2>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <h3>Expert Data</h3>
+      <p>Research-based information from trusted sources to help you make informed decisions.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⚖️</div>
+      <h3>Easy Comparisons</h3>
+      <p>Side-by-side comparisons of pets to find the perfect match for your lifestyle.</p>
+    </div>
+  </div>
+  <div class="feature-card">
+      <div class="feature-icon">💬</div>
+      <h3>Community Reviews</h3>
+      <p>Real experiences from pet owners to guide your decision-making process.</p>
+    </div>
+</section>
+
+<section class="featured-pets">
+  <h2>Popular Pet Choices</h2>
+  <div class="pets-grid">
     {% for p in featured %}
-      <article class="card">
-        <h4><a href="/pet_profile, pet_name=p.name">{{ p.name }}</a></h4>
-        <p>Setup Cost: ${{ p.cost_setup }} • Lifespan: {{ p.lifespan }}</p>
-      </article>
+    <div class="pet-card">
+      <div class="pet-image">
+        <img src="/static/images/search_pets.jpg" alt="{{ p.name }}">
+        <div class="pet-difficulty">Difficulty: {{ p.difficulty }}/5</div>
+      </div>
+      <div class="pet-info">
+        <h3><a href="/pet/{{ p.name|lower }}">{{ p.name }}</a></h3>
+        <p class="pet-stats">
+          <span>Setup: ${{ p.cost_setup }}</span>
+          <span>•</span>
+          <span>Daily: {{ p.daily_time_min }}min</span>
+        </p>
+        <p class="pet-temperament">{{ p.temperament }}</p>
+        <a href="/pet/{{ p.name|lower }}" class="pet-link">Learn More →</a>
+      </div>
+    </div>
+    {% else %}
+    <div class="no-pets">
+      <p>No featured pets available at the moment.</p>
+    </div>
     {% endfor %}
   </div>
 </section>
 
-<section>
-  <h3>Latest Reviews</h3>
-  <div class="grid">
+<section class="reviews-section">
+  <h2>What Pet Owners Say</h2>
+  <div class="reviews-grid">
     {% for r in reviews %}
-      <article class="card review">
-        <p class="comment">“{{ r.comment }}”</p>
-        <p class="reviewer">— {{ r.reviewer_name }} on 
-          <a href="/pet_profile, pet_name=r.pet_name">{{ r.pet_name }}</a>
-        </p>
-        <span class="rating">Rating: {{ r.rating }}/5</span>
-      </article>
+    <div class="review-card">
+      <div class="review-header">
+        <div class="reviewer">{{ r.reviewer_name }}</div>
+        <div class="rating">Rating: {{ r.rating }}/5</div>
+      </div>
+      <p class="review-comment">"{{ r.comment }}"</p>
+      <div class="review-pet">About: <a href="/pet/{{ r.pet_name|lower }}">{{ r.pet_name }}</a></div>
+    </div>
     {% else %}
+    <div class="no-reviews">
       <p>No reviews yet. Be the first to add one!</p>
+    </div>
     {% endfor %}
+  </div>
+</section>
+
+<section class="cta-section">
+  <div class="cta-content">
+    <h2>Ready to Find Your Perfect Pet?</h2>
+    <p>Start your journey today and find a companion that fits your lifestyle.</p>
+    <div class="cta-buttons">
+      <a href="/browse" class="btn-primary">Browse All Pets</a>
+      <a href="/compare" class="btn-secondary">Compare Pets</a>
+    </div>
   </div>
 </section>
 

@@ -5,39 +5,45 @@
         <link rel="stylesheet" href="/static/css/style.css">
     </head>
     <body>
-        <div class="review-container">
-            <label for="reviewer_name">First Name:*</label>
-            <input type="text" id="reviewer_name" name="reviewer_name" required>
-        </div>
-        </div>
+        <form name="review-container" method="POST"></form>
+            <table>
+                <tr>
+                <td colspan="2" style="text-align: center;"><strong>Leave A Review</strong></td>
+                </tr>
+        <tr>
+            <td>Your Name:</td>
+            <td><input type="text" id="reviewer_name" name="reviewer_name" required minlength="3" maxlength="20"></td> 
+        </tr>
         <br>
-        <div class="form-group">
-                <label>Your Rating:*</label>
-                <div class="rating">
-                    {% for i in range(5, 0, -1) %}
-                    <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}" required>
-                    <label for="star{{ i }}">★</label>
-                    {% endfor %}
+            <tr>
+                <td>Pet Name:</td>
+                <td><input type="text" id="pet_name" name="pet_name" required minlength="3" maxlength="20"></td>
+            </tr>
+            <br>
+            <tr>
+                <td>Species (e.g., Dog, Cat):</td>
+                <td><input type="text" id="species" name="species" required minlength="3" maxlength="20"></td>
+            </tr>
+            <br>
+            <td>Your Experience:</td>
+                <td><textarea id="description" name="description" required minlength="3" maxlength="20"></textarea></td>
+        </table>
+        <tr>
+            <div class="form-group">
+                    <label>Your Rating:</label>
+                    <div class="rating">
+                        {% for i in range(5, 0, -1) %}
+                        <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}" required>
+                        <label for="star{{ i }}">★</label>
+                        {% endfor %}
+                    </div>
                 </div>
-            </div>
+            </tr>
             <br>
-            <div class="form-group">
-                <label for="pet_name">Pet Name(s):*</label>
-                <input type="text" id="pet_name" name="pet_name" required>
-            </div>
-            <br>
-            <div class="form-group">
-                <label for="species">Species (e.g., Dog, Cat):*</label>
-                <input type="text" id="species" name="species" required>
-            </div>
-            <br>
-            <div class="form-group">
-                <label for="description">Your Experience:*</label>
-                <textarea id="description" name="description" required></textarea>
-            </div>
-            <br>
-            <button type="submit" class="submit-btn">Submit Review</button>
         </form>
+        <tr>
+            <td colspan="2"><input type="submit" value="Submit Review"></td>
+        </tr>
     </div>
     </body>
 {% endblock %}

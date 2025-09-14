@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, g, jsonify
+from datetime import datetime
 import sqlite3
 
 app = Flask(__name__)
@@ -115,23 +116,25 @@ def test_pets():
 def home():
     conn = get_db()
     try:
-        featured = conn.execute(
-            '''SELECT name,
-            lifespan,
-            temperament,
-            cost_setup FROM Pets
-            ORDER BY difficulty ASC LIMIT 3
-        ''').fetchall()
-        latest_reviews = conn.execute(
-            '''SELECT pet_name, 
-            reviewer_name, rating,
-            comment FROM Reviews
-            ORDER BY created_at DESC LIMIT 3
-        ''').fetchall()
-    except Exception:
+        featured = conn.execute('''SELECT name,
+                                difficulty, cost_setup,
+                                daily_time_minutes, temperament
+                                FROM Pets ORDER BY difficulty ASC LIMIT 3
+                                ''').fetchall()
+
+        latest_reviews = conn.execute('''SELECT pet_name,
+                                      reviewer_name, rating, comment
+                                      FROM Reviews 
+                                      ORDER BY created_at DESC LIMIT 3
+                                      ''').fetchall()
+
+    except Exception as e:
+        print("Error fetching home data:", e)
         featured, latest_reviews = [], []
+    finally:
         conn.close()
-    return render_template('home.html', title='HOME',
+
+    return render_template('home.html',
                            featured=featured, reviews=latest_reviews)
 
 
@@ -186,9 +189,12 @@ def browse():
 @app.route('/about')
 def about():
     about_content = {
-        "title": "About Our Pet Guide",
-        "mission": "Helping you find the perfect low-maintenance pet companion",
-        "description": "Our platform provides comprehensive information about various pets to help you make an informed decision."
+        "title":
+        "About Our Pet Guide",
+        "mission":
+        "Helping you find the perfect low-maintenance pet companion",
+        "description":
+        "Our platform provides comprehensive information about various pets to help you make an informed decision."
     }
     return render_template('about_pets.html', about=about_content)
 
@@ -311,45 +317,35 @@ def comparison_results():
 # Add Review with validation
 @app.route('/add_review', methods=['GET', 'POST'])
 def add_review():
-    if request.method == 'GET':
+    if request.method == 'POST':
+        reviewer_name = request.form['reviewer_name'].strip()
+        if len(reviewer_name) < 3 or len(reviewer_name) > 20:
+            redirect(404), 404
+        pet_name = request.form['pet_name']
+        species = request.form['species']
+        rating = request.form['rating']
+        comment = request.form['comment'].strip()
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         conn = get_db()
-        try:
-            pets = conn.execute('SELECT id, name FROM Pets').fetchall()
-        except Exception as e:
-            print("Error:", e)
-            pets = []
-        finally:
-            conn.close()
-        return render_template('add_review.html', pets=pets)
-
-    elif request.method == 'POST':
-        pet_id = request.form.get('pet_id')
-        reviewer_name = request.form.get('reviewer_name') or "Anonymous"
-        rating = request.form.get('rating') or "5"
-        comment = request.form.get('comment') or ""
-
+        c = conn.cursor()
         try:
             rating = int(rating)
             if rating < 1 or rating > 5:
                 rating = 5
         except:
             return redirect('/')
-
-        conn = get_db()
         try:
-            conn.execute('''INSERT INTO Reviews
-                        (pet_id, reviewer_name, rating, comment) VALUES (?,?,?,?)''',
-                        (pet_id, reviewer_name, rating, comment))
+            c.execute('INSERT INTO Reviews (pet_name, species, reviewer_name, rating, comment) VALUES (?, ?, ?, ?, ?)',
+                      (pet_name, species, reviewer_name, rating, comment))
+            conn.commit
+        except sqlite3.IntegrityError:
+            c.execute('UPDATE Orders SET pet_name = ?, species = ?, reviewer_name = ?, rating = ?, comment = ? WHERE reviewer_name = ?',
+                      (pet_name, species, reviewer_name, rating, comment, now))
             conn.commit()
-        except Exception as e:
-            print("Error adding review:", e)
-            conn.rollback()
-            return redirect('/add_review')
-        finally:
-            conn.close()
-
+        conn.close()
         # redirects to thank-you page
-        return render_template('review_thankyou.html')
+        return redirect('/review_thankyou')
+    return render_template('add_review.html')
 
 
 @app.route('/api/pets')
