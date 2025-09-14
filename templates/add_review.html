@@ -10,6 +10,7 @@
             <input type="text" id="reviewer_name" name="reviewer_name" required>
         </div>
         </div>
+        <br>
         <div class="form-group">
                 <label>Your Rating:*</label>
                 <div class="rating">
@@ -19,57 +20,24 @@
                     {% endfor %}
                 </div>
             </div>
-            
+            <br>
             <div class="form-group">
                 <label for="pet_name">Pet Name(s):*</label>
                 <input type="text" id="pet_name" name="pet_name" required>
             </div>
-            
+            <br>
             <div class="form-group">
                 <label for="species">Species (e.g., Dog, Cat):*</label>
                 <input type="text" id="species" name="species" required>
             </div>
-            
+            <br>
             <div class="form-group">
                 <label for="description">Your Experience:*</label>
                 <textarea id="description" name="description" required></textarea>
             </div>
-            
+            <br>
             <button type="submit" class="submit-btn">Submit Review</button>
         </form>
     </div>
     </body>
-<script>
-// Enhanced interactions - DeepSeek
-document.addEventListener('DOMContentLoaded', function() {
-    // Half-star hover effect
-    const stars = document.querySelectorAll('.star-rating label');
-    stars.forEach((star, index) => {
-        star.addEventListener('mouseover', () => {
-            // Highlight all stars up to the hovered one
-            for (let i = stars.length - 1; i >= index; i--) {
-                stars[i].style.color = '#ffc107';
-            }
-        });
-        
-        star.addEventListener('mouseout', () => {
-            // Reset to default state
-            const checked = document.querySelector('.star-rating input:checked');
-            stars.forEach(s => {
-                s.style.color = checked && s.htmlFor <= checked.value ? '#ffc107' : '#ccc';
-            });
-        });
-    });
-    
-    // Preserve state after hover
-    document.querySelectorAll('.star-rating input').forEach(input => {
-        input.addEventListener('change', function() {
-            const labels = document.querySelectorAll('.star-rating label');
-            labels.forEach(label => {
-                label.style.color = label.htmlFor <= this.value ? '#ffc107' : '#ccc';
-            });
-        });
-    });
-});
-</script>
 {% endblock %}

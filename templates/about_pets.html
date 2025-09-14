@@ -2,38 +2,44 @@
 {% block title %}About — Your Perfect Pet{% endblock %}
 {% block content %}
 <div class="about-container">
-  <h2>About Our Pet Guide</h2>
+  <div class="about-hero">
+    <img src="/static/images/about_hero.jpg" alt="about_hero" class="about-hero-image">
+  <h1>𝒜𝒷𝑜𝓊𝓉 𝒪𝓊𝓇 𝒫𝑒𝓉 𝒢𝓊𝒾𝒹𝑒</h1>
   
   <div class="mission-section">
-    <h3>Our Mission</h3>
+    <h3>𝓞𝓾𝓻 𝓜𝓲𝓼𝓼𝓲𝓸𝓷</h3>
     <p>Bringing a pet into your home is a joyous occasion, but it's also a big decision. Many prospective pet owners, especially first-timers or those with busy lifestyles, seek companions that fit seamlessly into their lives without overwhelming demands.</p>
     <p>Our mission is to simplify this process, helping you make an informed choice that leads to a happy, long-term relationship with your new furry, finned, or scaled friend.</p>
   </div>
 
   <div class="features-section">
-    <h3>How We Help You Find Your Match</h3>
+    <h3>𝓗𝓸𝔀 𝓦𝓮 𝓗𝓮𝓵𝓹 𝓨𝓸𝓾 𝓕𝓲𝓷𝓭 𝓨𝓸𝓾𝓻 𝓜𝓪𝓽𝓬𝓱</h3>
     
-    <div class="feature">
-      <h4>Reliable Pet Data</h4>
-      <p>We compile comprehensive information from trusted sources like ASPCA and PetMD. Our database stores details on temperament, space needs, costs, and care demands.</p>
-    </div>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h4>Reliable Pet Data</h4>
+        <p>We compile comprehensive information from trusted sources like ASPCA and PetMD. Our database stores details on temperament, space needs, costs, and care demands.</p>
+      </div>
     
-    <div class="feature">
-      <h4>Intuitive Search & Filter</h4>
-      <p>We enable you to filter pets by criteria such as living space, budget, and maintenance level. This ensures you quickly discover animals that align with your lifestyle.</p>
-    </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔍</div>
+        <h4>Intuitive Search & Filter</h4>
+        <p>We enable you to filter pets by criteria such as living space, budget, and maintenance level. This ensures you quickly discover animals that align with your lifestyle.</p>
+      </div>
     
-    <div class="feature">
+      <div class="feature-card">
+      <div class="feature-icon">⚖️</div>
       <h4>Side-by-Side Comparisons</h4>
       <p>Our unique comparison tool lets you evaluate different pets head-to-head, highlighting key differences in care, cost, and suitability.</p>
     </div>
-    
-    <div class="feature">
+  </div>
+
+  <div class="feature-card">
+      <div class="feature-icon">💬</div>
       <h4>Community Reviews</h4>
       <p>Benefit from the experiences of other pet owners. User reviews provide real-world insights into daily care, behavior, and overall ownership satisfaction.</p>
     </div>
-  </div>
-  
+    
   <div class="cta-section">
     <h3>Ready to Find Your Perfect Match?</h3>
     <p>Start your journey today and welcome a new member into your family!</p>
@@ -41,6 +47,14 @@
       <a href="/browse" class="btn-primary">Browse Pets</a>
       <a href="/compare" class="btn-secondary">Compare Pets</a>
     </div>
+
+    <div class="cta-image">
+            <img src="/static/images/various_pets.jpg" alt="Happy pets together">
+            <div class="photo-caption">
+                <h3>Every Pet Deserves a Loving Home</h3>
+                <p> You're making a wonderful choice to bring a pet into your life.</p>
+            </div>
+        </div>
   </div>
-</div>
+
 {% endblock %}

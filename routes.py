@@ -337,8 +337,9 @@ def add_review():
 
         conn = get_db()
         try:
-            conn.execute('INSERT INTO Reviews (pet_id, reviewer_name, rating, comment) VALUES (?,?,?,?)',
-                         (pet_id, reviewer_name, rating, comment))
+            conn.execute('''INSERT INTO Reviews
+                        (pet_id, reviewer_name, rating, comment) VALUES (?,?,?,?)''',
+                        (pet_id, reviewer_name, rating, comment))
             conn.commit()
         except Exception as e:
             print("Error adding review:", e)
@@ -355,15 +356,13 @@ def add_review():
 def api_pets():
     conn = get_db()
     try:
-        rows = conn.execute('''
-            SELECT
+        rows = conn.execute('''SELECT
                 p.id, p.name, p.lifespan, p.difficulty, p.cost_setup,
                 p.daily_time_min, p.space_required, p.temperament, p.notes,
                 s.name as species_name
-            FROM Pets p
-            LEFT JOIN Species s ON p.species_id = s.id
-            ORDER BY p.name
-        ''').fetchall()
+                FROM Pets p
+                LEFT JOIN Species s ON p.species_id = s.id
+                ORDER BY p.name''').fetchall()
         data = [dict(row) for row in rows]
     except Exception as e:
         print("Error in API:", e)
