@@ -1,49 +1,42 @@
 {% extends "layout.html" %}
 {% block content %}
-<head>
-        <title>Add Your Review</title>
-        <link rel="stylesheet" href="/static/css/style.css">
-    </head>
-    <body>
-        <form name="review-container" method="POST"></form>
-            <table>
-                <tr>
-                <td colspan="2" style="text-align: center;"><strong>Leave A Review</strong></td>
-                </tr>
+<form action="{{ url_for('add_review') }}" name="review-container" method="POST">
+    <table>
+        <tr>
+            <td colspan="2" style="text-align: center;"><strong>Leave A Review</strong></td>
+        </tr>
         <tr>
             <td>Your Name:</td>
-            <td><input type="text" id="reviewer_name" name="reviewer_name" required minlength="3" maxlength="20"></td> 
+            <td><input type="text" id="reviewer_name" name="reviewer_name" required minlength="3" maxlength="20"></td>
         </tr>
         <br>
-            <tr>
-                <td>Pet Name:</td>
-                <td><input type="text" id="pet_name" name="pet_name" required minlength="3" maxlength="20"></td>
-            </tr>
-            <br>
-            <tr>
-                <td>Species (e.g., Dog, Cat):</td>
-                <td><input type="text" id="species" name="species" required minlength="3" maxlength="20"></td>
-            </tr>
-            <br>
-            <td>Your Experience:</td>
-                <td><textarea id="description" name="description" required minlength="3" maxlength="20"></textarea></td>
-        </table>
         <tr>
-            <div class="form-group">
-                    <label>Your Rating:</label>
-                    <div class="rating">
-                        {% for i in range(5, 0, -1) %}
-                        <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}" required>
-                        <label for="star{{ i }}">★</label>
-                        {% endfor %}
-                    </div>
-                </div>
-            </tr>
-            <br>
-        </form>
-        <tr>
-            <td colspan="2"><input type="submit" value="Submit Review"></td>
+            <td>Pet Name:</td>
+            <td><input type="text" id="pet_name" name="pet_name" required minlength="3" maxlength="20"></td>
         </tr>
-    </div>
-    </body>
+        <br>
+        <tr>
+            <td>Species (e.g., Dog, Cat):</td>
+            <td><input type="text" id="species" name="species" required minlength="3" maxlength="20"></td>
+        </tr>
+        <br>
+        <td>Your Experience:</td>
+        <td><textarea id="description" name="description" required minlength="3" maxlength="20"></textarea></td>
+    </table>
+    <tr>
+        <div class="form-group">
+            <label>Your Rating:</label>
+            <div class="rating">
+                {% for i in range(5, 0, -1) %}
+                <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}" required>
+                <label for="star{{ i }}">★</label>
+                {% endfor %}
+            </div>
+        </div>
+    </tr>
+    <br>
+<tr>
+    <button type="submit">Submit Review</button>
+</tr>
+</form>
 {% endblock %}

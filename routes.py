@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, g, jsonify
+from flask import Flask, render_template, request, redirect, url_for, g, jsonify, abort
 from datetime import datetime
 import sqlite3
 
@@ -317,35 +317,57 @@ def comparison_results():
 # Add Review with validation
 @app.route('/add_review', methods=['GET', 'POST'])
 def add_review():
+    reviewer_name = request.form.get("reviewer_name")
+    print(reviewer_name)
+    pet_name = request.form.get('pet_name')
+    print(pet_name)
+    species = request.form.get('species')
+    print(species)
+    rating = request.form.get('rating')
+    print(rating)
+    comment = request.form.get('description')
+    print(comment)
     if request.method == 'POST':
-        reviewer_name = request.form['reviewer_name'].strip()
-        if len(reviewer_name) < 3 or len(reviewer_name) > 20:
-            redirect(404), 404
-        pet_name = request.form['pet_name']
-        species = request.form['species']
-        rating = request.form['rating']
-        comment = request.form['comment'].strip()
+        print(1)
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print(2)
         conn = get_db()
+        print(3)
         c = conn.cursor()
+        print(4)
         try:
             rating = int(rating)
+            print(5)
             if rating < 1 or rating > 5:
                 rating = 5
-        except:
+                print(6)
+        except Exception:
             return redirect('/')
+            print(7)
         try:
-            c.execute('INSERT INTO Reviews (pet_name, species, reviewer_name, rating, comment) VALUES (?, ?, ?, ?, ?)',
+            c.execute('''INSERT INTO Reviews
+                      (pet_name, species, reviewer_name, rating, comment)
+                      VALUES (?, ?, ?, ?, ?)''',
                       (pet_name, species, reviewer_name, rating, comment))
-            conn.commit
+            print(9)
+            conn.commit()
+            print(10)
         except sqlite3.IntegrityError:
             c.execute('UPDATE Orders SET pet_name = ?, species = ?, reviewer_name = ?, rating = ?, comment = ? WHERE reviewer_name = ?',
                       (pet_name, species, reviewer_name, rating, comment, now))
+            print(11)
             conn.commit()
+            print(12)
         conn.close()
+        print(13)
         # redirects to thank-you page
         return redirect('/review_thankyou')
     return render_template('add_review.html')
+
+
+@app.route('/review_thankyou')
+def review_thankyou():
+    return render_template('review_thankyou.html')
 
 
 @app.route('/api/pets')
