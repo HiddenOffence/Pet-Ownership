@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, redirect, url_for, g, jsonify, abort
+from flask import Flask, render_template, request, redirect, g, \
+    jsonify, abort
 from datetime import datetime
 import sqlite3
 
@@ -34,24 +35,11 @@ def get_db():
     description TEXT);
     ''')
 
-    c.execute('''CREATE TABLE IF NOT EXISTS Attributes (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    description TEXT); ''')
-
     c.execute('''CREATE TABLE IF NOT EXISTS Places (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     address TEXT);
     ''')
-
-    c.execute('''CREATE TABLE IF NOT EXISTS pet_attributes (
-    pet_id INT,
-    attributes_id INT,
-    cost DECIMAL(6,2),
-    PRIMARY KEY (pet_id, attributes_id),
-    FOREIGN KEY (pet_id) REFERENCES Pets(id),
-    FOREIGN KEY (attributes_id) REFERENCES Places(id));''')
 
     c.execute('''CREATE TABLE IF NOT EXISTS place_pet (
     pet_id INT,
@@ -68,7 +56,6 @@ def get_db():
     pet_name TEXT NOT NULL,
     species TEXT NOT NULL,
     comment TEXT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (pet_id) REFERENCES Pets(id));
     ''')
 
@@ -99,9 +86,13 @@ def test_pets():
         # Add test links
         html += "<h2>Test Comparisons</h2><ul>"
         if len(pets) >= 2:
-            html += f"<li><a href='/compare_results?first={pets[0]['id']}&second={pets[1]['id']}'>Compare {pets[0]['name']} vs {pets[1]['name']}</a></li>"
+            html += f"<li><a href='/compare_results?first={pets[0]['id']}&\
+                second={pets[1]['id']}'>\
+                    Compare {pets[0]['name']} vs {pets[1]['name']}</a></li>"
         if len(pets) >= 3:
-            html += f"<li><a href='/compare_results?first={pets[1]['id']}&second={pets[2]['id']}'>Compare {pets[1]['name']} vs {pets[2]['name']}</a></li>"
+            html += f"<li><a href='/compare_results?first={pets[1]['id']}&\
+                second={pets[2]['id']}'>\
+                    Compare {pets[1]['name']} vs {pets[2]['name']}</a></li>"
         html += "</ul>"
 
         return html
@@ -118,14 +109,14 @@ def home():
     try:
         featured = conn.execute('''SELECT name,
                                 difficulty, cost_setup,
-                                daily_time_minutes, temperament
+                                daily_time_min, temperament
                                 FROM Pets ORDER BY difficulty ASC LIMIT 3
                                 ''').fetchall()
 
         latest_reviews = conn.execute('''SELECT pet_name,
                                       reviewer_name, rating, comment
-                                      FROM Reviews 
-                                      ORDER BY created_at DESC LIMIT 3
+                                      FROM Reviews
+                                      LIMIT 3
                                       ''').fetchall()
 
     except Exception as e:
@@ -138,51 +129,37 @@ def home():
                            featured=featured, reviews=latest_reviews)
 
 
-# Browse pet page - search-GPT
-@app.route('/browse')
-def browse():
-    search_text = request.args.get('search')
-    difficulty_choice = request.args.get('difficulty')
-
-    sql = '''
-    SELECT id,
-    name,
-    species_id,
-    lifespan,
-    cost_setp,
-    daily_time_min
-    FROM Pets WHERE 1=1'''
-
-    filters = []
-    params = []
-
-    if search_text and search_text.strip() != "":
-        filters.append('(name LIKE ? OR temperament LIKE ?)')
-        term = f"%{search_text.strip()}%"
-        params.extend([term, term])
-
-    if difficulty_choice and difficulty_choice.strip() != "":
-        try:
-            diff_num = int(difficulty_choice)
-            filters.append('difficulty = ?')
-            params.append(diff_num)
-        except:
-            pass
-
-    if filters:
-        sql += ' WHERE ' + ' AND '.join(filters)
-
-    sql += ' ORDER BY cost_setup ASC'
-
+# Debug search
+@app.route('/debug_search')
+def debug_search():
+    search_query = request.args.get('q', '')
     conn = get_db()
     try:
-        pets = conn.execute(sql, params).fetchall()
-    except Exception:
-        pets = []
+        # Test the search query
+        pets = conn.execute(
+            '''SELECT name,
+               species_id,
+               lifespan,
+               difficulty,
+               cost_setup,
+               daily_time_min,
+               space_required,
+               temperament,
+               notes FROM Pets WHERE name LIKE ? OR temperament LIKE ?''',
+            (f'%{search_query}%', f'%{search_query}%')
+        ).fetchall()
 
+        result = f"<h1>Search Results for '{search_query}'</h1>"
+        result += f"<p>Found {len(pets)} results</p>"
+
+        for pet in pets:
+            result += f"<pre>{dict(pet)}</pre><hr>"
+
+        return result
+    except Exception as e:
+        return f"Error: {str(e)}"
+    finally:
         conn.close()
-
-    return render_template('browse.html', pets=pets, search=search_text)
 
 
 # About page
@@ -200,33 +177,36 @@ def about():
 
 
 # Pets profile page
-@app.route('/pet/<pet_name>')
-def pet_profile(pet_name):
+@app.route('/pet/<int:pet_id>')
+def pet_profile(pet_id):
     conn = get_db()
     try:
         pet = conn.execute('''SELECT id,
-                           name,
-                           species_id
-                           FROM Pets
-                           JOIN Species ON Pets.species_id = Species.id
-                           WHERE name = ?''', (pet_name,)).fetchone()
-        reviews = conn.execute(
-            '''SELECT reviewer_name,
-            rating,
-            comment,
-            created_at
-            FROM Reviews WHERE pet_name = ? ORDER BY created_at DESC''',
-            (pet_name,)
-        ).fetchall()
-    except Exception:
-        pet, reviews = None, []
-       
-    conn.close()
-
-    if pet is None:
-        return render_template('404.html'), 404
-
-    return render_template('pet.html', pet=pet, reviews=reviews)
+                            name,
+                            species_id,
+                            lifespan,
+                            difficulty,
+                            cost_setup,
+                            daily_time_min,
+                            space_required,
+                            temperament,
+                            notes FROM Pets
+                            WHERE id = ?''', (pet_id,)).fetchone()
+        print(dict(pet))
+        if pet is not None:
+            print("got here")
+            return render_template('pet_profiles.html', pet=dict(pet))
+        else:
+            return render_template('error.html',
+                                   message=(f'Pet with ID {pet_id} not found. \
+                                       <a href="/browse">Browse all pets</a>'))
+    except Exception as e:
+        print("Error fetching pet:", e)
+        return render_template('error.html',
+                               message='Error loading pet information. \
+                                   Please try again.')
+    finally:
+        conn.close()
 
 
 # Comparison tool
@@ -265,12 +245,10 @@ def comparison_results():
 
     # Basic validation
     if not first_name or not second_name:
-        return render_template('error.html',
-                               message='Please select two pets to compare.')
+        abort(404)
 
     if first_name == second_name:
-        return render_template('error.html',
-                               message='Please select two different pets to compare.')
+        abort(404)
 
     conn = get_db()
 
@@ -288,8 +266,9 @@ def comparison_results():
                 not_found.append(first_name)
             if not pet2:
                 not_found.append(second_name)
-            return render_template('error.html', 
-                                   message=f"Pets not found: {', '.join(not_found)}")
+            return render_template('error.html',
+                                   message=(f"Pets not found: \
+                                       {', '.join(not_found)}"))
 
         # Convert to dictionaries with default values for None fields
         pet1_dict = dict(pet1)
@@ -309,7 +288,8 @@ def comparison_results():
     except Exception as e:
         print("Error in comparison:", e)
         return render_template('error.html',
-                               message='An error occurred while comparing pets.')
+                               message='An error occurred while comparing pets\
+                                   .')
     finally:
         conn.close()
 
@@ -353,7 +333,12 @@ def add_review():
             conn.commit()
             print(10)
         except sqlite3.IntegrityError:
-            c.execute('UPDATE Orders SET pet_name = ?, species = ?, reviewer_name = ?, rating = ?, comment = ? WHERE reviewer_name = ?',
+            c.execute('''UPDATE Orders SET pet_name = ?,
+                      species = ?,
+                      reviewer_name = ?,
+                      rating = ?,
+                      comment = ?
+                      WHERE reviewer_name = ?''',
                       (pet_name, species, reviewer_name, rating, comment, now))
             print(11)
             conn.commit()

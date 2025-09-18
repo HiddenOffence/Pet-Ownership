@@ -1,40 +1,62 @@
-{% extends "layout.html" %}
-{% block title %}{{ pet.name }} — Profile{% endblock %}
+{% extends 'layout.html' %}
+{% block title %}{{ pet.name }} - Profile{% endblock %}
 {% block content %}
 
-<div class="pet-profile">
-  <h2>{{ pet.name }}</h2>
-  <p><strong>Species:</strong> {{ pet.species }} ({{ pet.species_desc }})</p>
-  <p><strong>Lifespan:</strong> {{ pet.lifespan }}</p>
-  <p><strong>Temperament:</strong> {{ pet.temperament }}</p>
-  <p><strong>Setup Cost:</strong> ${{ pet.cost_setup }}</p>
-  <p><strong>Daily Care:</strong> {{ pet.daily_time }} mins</p>
-
-  <h3>Reviews</h3>
-  <div class="reviews">
-    {% for review in reviews %}
-    <div class="review">
-      <div class="review-header">
-        <strong>{{ review.reviewer_name }}</strong>
-        <span class="stars">
-          {{ "★" * review.rating }}{{ "☆" * (5 - review.rating) }}
-        </span>
-      </div>
-      <p class="comment">{{ review.comment }}</p>
+<div class="pet-profile-container">
+    <div class="pet-header">
+        <h1>{{ pet.name }}</h1>
+        <p class="pet-species">{{ pet.species or 'Unknown species' }}</p>
     </div>
-    {% else %}
-    <p>No reviews yet. Be the first to add one!</p>
-    {% endfor %}
-  </div>
-
-  <h3>Add a Review</h3>
-  <form action="/add_review" method="post" class="review-form">
-    <input type="hidden" name="pet_name" value="{{ pet.name }}">
-    <input type="text" name="reviewer_name" placeholder="Your name">
-    <input type="number" name="rating" min="1" max="5" placeholder="Rating (1-5)">
-    <textarea name="comment" placeholder="Write your review..."></textarea>
-    <button type="submit">Submit Review</button>
-  </form>
+    
+    <div class="pet-content">
+        <div class="pet-image-large">
+            <img src="/static/images/{{ pet.name|lower }}.jpg" alt="{{ pet.name }}">
+        </div>
+        
+        <div class="pet-details">
+            <div class="detail-card">
+                <h3>Care Requirements</h3>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Difficulty Level</span>
+                        <span class="detail-value">{{ pet.difficulty }}/5</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Setup Cost</span>
+                        <span class="detail-value">${{ pet.cost_setup }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Daily Time</span>
+                        <span class="detail-value">{{ pet.daily_time_min }} minutes</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Space Needed</span>
+                        <span class="detail-value">{{ pet.space_required or 'Unknown' }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Lifespan</span>
+                        <span class="detail-value">{{ pet.lifespan or 'Unknown' }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="detail-card">
+                <h3>Temperament & Notes</h3>
+                <p class="pet-temperament">{{ pet.temperament or 'No temperament information available.' }}</p>
+                {% if pet.notes %}
+                <div class="pet-notes">
+                    <h4>Additional Notes:</h4>
+                    <p>{{ pet.notes }}</p>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="pet-actions">
+                <a href="/compare?first={{ pet.name }}" class="btn-primary">Compare This Pet</a>
+                <a href="/browse" class="btn-secondary">Browse Other Pets</a>
+            </div>
+        </div>
+    </div>
 </div>
 
 {% endblock %}
