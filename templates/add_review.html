@@ -21,7 +21,7 @@
         </tr>
         <br>
         <td>Your Experience:</td>
-        <td><textarea id="description" name="description" required minlength="3" maxlength="20"></textarea></td>
+        <td><textarea id="comment" name="comment" required minlength="3" maxlength="30"></textarea></td>
     </table>
     <tr>
         <div class="form-group">
@@ -29,7 +29,7 @@
             <div class="rating">
                 {% for i in range(5, 0, -1) %}
                 <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}" required>
-                <label for="star{{ i }}">★</label>
+                <label for="star{{ i }}">⭐</label>
                 {% endfor %}
             </div>
         </div>

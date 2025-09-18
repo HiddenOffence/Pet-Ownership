@@ -309,19 +309,29 @@ def comparison_results():
     second_name = request.args.get('second', '')
 
     # Basic validation
-    if not first_name or not second_name:
-        abort(404)
-
-    if first_name == second_name:
+    if not first_name or not second_name or first_name == second_name:
         abort(404)
 
     conn = get_db()
 
     try:
         # Get pets by name instead of ID
-        pet1 = conn.execute('SELECT name FROM Pets WHERE name = ?',
+        pet1 = conn.execute('''SELECT Pets.*,
+                            Species.name AS species,
+                            Species.description AS
+                            species_desc
+                            FROM Pets
+                            JOIN Species
+                            ON Pets.species_id = Species.id
+                            WHERE Pets.name = ?''',
                             (first_name,)).fetchone()
-        pet2 = conn.execute('SELECT name FROM Pets WHERE name = ?',
+        pet2 = conn.execute('''SELECT Pets.*,
+                            Species.name AS species,
+                            Species.description
+                            AS species_desc
+                            FROM Pets
+                            JOIN Species ON Pets.species_id = Species.id
+                            WHERE Pets.name = ?''', 
                             (second_name,)).fetchone()
 
         # Check if pets were found
@@ -331,9 +341,6 @@ def comparison_results():
                 not_found.append(first_name)
             if not pet2:
                 not_found.append(second_name)
-            return render_template('error.html',
-                                   message=(f"Pets not found: \
-                                       {', '.join(not_found)}"))
 
         # Convert to dictionaries with default values for None fields
         pet1_dict = dict(pet1)
@@ -352,9 +359,7 @@ def comparison_results():
 
     except Exception as e:
         print("Error in comparison:", e)
-        return render_template('error.html',
-                               message='An error occurred while comparing pets\
-                                   .')
+        abort(404)
     finally:
         conn.close()
 
@@ -363,40 +368,25 @@ def comparison_results():
 @app.route('/add_review', methods=['GET', 'POST'])
 def add_review():
     reviewer_name = request.form.get("reviewer_name")
-    print(reviewer_name)
     pet_name = request.form.get('pet_name')
-    print(pet_name)
     species = request.form.get('species')
-    print(species)
     rating = request.form.get('rating')
-    print(rating)
-    comment = request.form.get('description')
-    print(comment)
+    comment = request.form.get('comment')
     if request.method == 'POST':
-        print(1)
-        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        print(2)
         conn = get_db()
-        print(3)
         c = conn.cursor()
-        print(4)
         try:
             rating = int(rating)
-            print(5)
             if rating < 1 or rating > 5:
                 rating = 5
-                print(6)
         except Exception:
             return redirect('/')
-            print(7)
         try:
             c.execute('''INSERT INTO Reviews
                       (pet_name, species, reviewer_name, rating, comment)
                       VALUES (?, ?, ?, ?, ?)''',
                       (pet_name, species, reviewer_name, rating, comment))
-            print(9)
             conn.commit()
-            print(10)
         except sqlite3.IntegrityError:
             c.execute('''UPDATE Orders SET pet_name = ?,
                       species = ?,
@@ -404,12 +394,9 @@ def add_review():
                       rating = ?,
                       comment = ?
                       WHERE reviewer_name = ?''',
-                      (pet_name, species, reviewer_name, rating, comment, now))
-            print(11)
+                      (pet_name, species, reviewer_name, rating, comment))
             conn.commit()
-            print(12)
         conn.close()
-        print(13)
         # redirects to thank-you page
         return redirect('/review_thankyou')
     return render_template('add_review.html')

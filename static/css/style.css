@@ -56,12 +56,10 @@
   border-radius: 8px;
   font-weight: bold;
   background: #5a8fc9;
-  text-decoration: underline;
 }
 
 .search-form button:hover {
   color: white;
-  text-decoration: none;
   transform: translateY(-3px);
 }
 
@@ -122,6 +120,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 2rem;
+  align-content: space-evenly;
 }
 
 .pet-card {
@@ -377,16 +376,6 @@ body {
     color: white;
 }
 
-.btn-primary {
-  color: white;
-  border: 2px solid var(--accent);
-}
-
-.btn-secondary {
-  color: white;
-  border: 2px solid var(--accent);
-}
-
 .container {
   max-width: 1000px;
   margin: 0 auto;
@@ -407,8 +396,7 @@ body {
   align-items: center;
   justify-content: space-between, center;
   text-align: center;
-  flex-direction: column;  
-  align-items: center;  
+  flex-direction: column;
 }
 
 .brand {
@@ -497,6 +485,19 @@ body {
 button {  
     border-radius:6px; 
     font-family: 'Merienda', cursive;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: bold;
+    display: inline-block;
+    color: white;
+    font-family: 'Merienda', cursive;
+    font-size: 20px;
+    background-color: #71a5d8;
+}
+
+button:hover {
+  transform: translateY(-3px);
 }
 
 .profile ul { 
@@ -558,6 +559,15 @@ button {
     align-items: stretch;
     gap: 2rem;
     margin-bottom: 2rem;
+}
+
+.comparison-summary {
+  margin-top: 1.5em;
+  padding: 1em;
+  background: #f0f9f0;
+  border-left: 5px solid #4CAF50;
+  font-size: 1.1em;
+  border-radius: 8px;
 }
 
 .pet-selector {
@@ -999,94 +1009,6 @@ button {
   }
 }
 
-/* Reviews page */
-
-/* Browse Pets Page Styles */
-.browse-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem 1rem;
-}
-
-.browse-intro {
-    text-align: center;
-    color: #666;
-    margin-bottom: 2rem;
-    font-size: 1.1rem;
-}
-
-.search-filters {
-    background: #f8f9fa;
-    padding: 2rem;
-    border-radius: 12px;
-    margin-bottom: 2rem;
-}
-
-.browse-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
-
-.search-box {
-    display: flex;
-    gap: 0.5rem;
-}
-
-.search-box input {
-    flex: 1;
-    padding: 1rem;
-    border: 2px solid #e0e0e0;
-    border-radius: 8px;
-    font-size: 1rem;
-}
-
-.search-box button {
-    padding: 1rem 1.5rem;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-weight: bold;
-    background-color: #527dc2;
-}
-
-.search-box button:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.12);
-}
-
-.filter-options {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1rem;
-}
-
-.filter-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.filter-group label {
-    font-weight: bold;
-    color: #2c3e50;
-}
-
-.filter-group select {
-    padding: 0.75rem;
-    border: 2px solid #e0e0e0;
-    border-radius: 6px;
-    background: white;
-}
-
-.results-info {
-    margin-bottom: 2rem;
-    padding: 1rem;
-    background: #e8f4fc;
-    border-radius: 8px;
-    border-left: 4px solid var(--accent);
-}
-
 /* Pets Grid */
 .pet-image {
     position: relative;
@@ -1292,8 +1214,34 @@ button {
     border-radius: 8px;
 }
 
-.detail-label {
-    font-size: 0.9rem;
-    color: #7f8c8d;
-    margin-bottom:
+/* Reviews Page */
+.reviews-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.5em;
+  margin-top: 1.5em;
+}
+
+.card.review {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1em;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5em;
+}
+
+.rating {
+  color: #FFD700; /* gold for stars */
+  font-size: 1.1em;
+}
+
+.comment {
+  font-style: italic;
+  margin: 0.5em 0;
 }

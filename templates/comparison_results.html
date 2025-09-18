@@ -17,45 +17,119 @@
         </div>
     </div>
     
-    <div class="comparison-summary">
-        <h3>Summary</h3>
-        <ul>
-            {% if pet1.cost_setup is not none and pet2.cost_setup is not none %}
-                {% if pet1.cost_setup < pet2.cost_setup %}
-                <li>{{ pet1.name }} has a lower setup cost than {{ pet2.name }}</li>
-                {% elif pet1.cost_setup > pet2.cost_setup %}
-                <li>{{ pet2.name }} has a lower setup cost than {{ pet1.name }}</li>
-                {% else %}
-                <li>Both pets have similar setup costs</li>
-                {% endif %}
-            {% else %}
-                <li>Setup cost comparison not available</li>
-            {% endif %}
+    <div class="comparison-details">
+        <div class="comparison-category">
+            <h4>Care Requirements</h4>
+            <div class="comparison-row">
+                <div class="comparison-item">
+                    <span class="value">{{ pet1.daily_time_min if pet1.daily_time_min else 'Unknown' }} min/day</span>
+                    <span class="label">Daily Time</span>
+                </div>
+                <div class="comparison-metric">Daily Care Time</div>
+                <div class="comparison-item">
+                    <span class="value">{{ pet2.daily_time_min if pet2.daily_time_min else 'Unknown' }} min/day</span>
+                    <span class="label">Daily Time</span>
+                </div>
+            </div>
             
-            {% if pet1.daily_time_min is not none and pet2.daily_time_min is not none %}
-                {% if pet1.daily_time_min < pet2.daily_time_min %}
-                <li>{{ pet1.name }} requires less daily care time than {{ pet2.name }}</li>
-                {% elif pet1.daily_time_min > pet2.daily_time_min %}
-                <li>{{ pet2.name }} requires less daily care time than {{ pet1.name }}</li>
-                {% else %}
-                <li>Both pets require similar daily care time</li>
-                {% endif %}
-            {% else %}
-                <li>Daily care time comparison not available</li>
-            {% endif %}
+            <div class="comparison-row">
+                <div class="comparison-item">
+                    <span class="value">{{ pet1.space_required if pet1.space_required else 'Unknown' }}</span>
+                    <span class="label">Space Needed</span>
+                </div>
+                <div class="comparison-metric">Space Requirements</div>
+                <div class="comparison-item">
+                    <span class="value">{{ pet2.space_required if pet2.space_required else 'Unknown' }}</span>
+                    <span class="label">Space Needed</span>
+                </div>
+            </div>
             
-            {% if pet1.difficulty is not none and pet2.difficulty is not none %}
+            <div class="comparison-row">
+                <div class="comparison-item">
+                    <span class="value">{{ pet1.temperament if pet1.temperament else 'Unknown' }}</span>
+                    <span class="label">Temperament</span>
+                </div>
+                <div class="comparison-metric">Temperament</div>
+                <div class="comparison-item">
+                    <span class="value">{{ pet2.temperament if pet2.temperament else 'Unknown' }}</span>
+                    <span class="label">Temperament</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="comparison-category">
+            <h4>Costs</h4>
+            <div class="comparison-row">
+                <div class="comparison-item">
+                    <span class="value">${{ pet1.cost_setup if pet1.cost_setup else 'Unknown' }}</span>
+                    <span class="label">Setup Cost</span>
+                </div>
+                <div class="comparison-metric">Initial Setup Cost</div>
+                <div class="comparison-item">
+                    <span class="value">${{ pet2.cost_setup if pet2.cost_setup else 'Unknown' }}</span>
+                    <span class="label">Setup Cost</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="comparison-category">
+            <h4>Characteristics</h4>
+            <div class="comparison-row">
+                <div class="comparison-item">
+                    <span class="value">{{ pet1.lifespan if pet1.lifespan else 'Unknown' }}</span>
+                    <span class="label">Lifespan</span>
+                </div>
+                <div class="comparison-metric">Typical Lifespan</div>
+                <div class="comparison-item">
+                    <span class="value">{{ pet2.lifespan if pet2.lifespan else 'Unknown' }}</span>
+                    <span class="label">Lifespan</span>
+                </div>
+            </div>
+            
+            <div class="comparison-row">
+                <div class="comparison-item">
+                    <span class="value">{{ pet1.difficulty if pet1.difficulty else 'Unknown' }}/5</span>
+                    <span class="label">Care Difficulty</span>
+                </div>
+                <div class="comparison-metric">Care Difficulty (1=easy, 5=hard)</div>
+                <div class="comparison-item">
+                    <span class="value">{{ pet2.difficulty if pet2.difficulty else 'Unknown' }}/5</span>
+                    <span class="label">Care Difficulty</span>
+                </div>
+            </div>
+        </div>
+        
+        {% if pet1.notes or pet2.notes %}
+        <div class="comparison-category">
+            <h4>Additional Notes</h4>
+            <div class="comparison-row">
+                <div class="comparison-item full-width">
+                    <p>{{ pet1.notes if pet1.notes else 'No additional notes' }}</p>
+                </div>
+                <div class="comparison-metric">Additional Information</div>
+                <div class="comparison-item full-width">
+                    <p>{{ pet2.notes if pet2.notes else 'No additional notes' }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="comparison-verdict">
+        <h4>Which pet is right for you?</h4>
+        <p>
+            {% if pet1.difficulty and pet2.difficulty %}
                 {% if pet1.difficulty < pet2.difficulty %}
-                <li>{{ pet1.name }} is easier to care for than {{ pet2.name }}</li>
+                    <strong>{{ pet1.name }}</strong> is generally easier to care for than <strong>{{ pet2.name }}</strong>.
                 {% elif pet1.difficulty > pet2.difficulty %}
-                <li>{{ pet2.name }} is easier to care for than {{ pet1.name }}</li>
+                    <strong>{{ pet2.name }}</strong> is generally easier to care for than <strong>{{ pet1.name }}</strong>.
                 {% else %}
-                <li>Both pets have similar care difficulty</li>
+                    Both pets have similar care difficulty levels.
                 {% endif %}
             {% else %}
-                <li>Difficulty comparison not available</li>
+                Consider your available time, space, and budget when choosing between these pets.
             {% endif %}
-        </ul>
+        </p>
     </div>
     
     <div class="action-buttons">

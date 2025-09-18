@@ -8,8 +8,7 @@
     <p class="lead">Discover which pets are easiest to care for and find a low-maintenance companion that suits your home and lifestyle.</p>
     
     <form action="/browse" class="search-form">
-      <input type="text" name="search" placeholder="Search pets by name, species or traits">
-      <button type="submit">Search</button>
+      <button type="submit">Browse All Pets</button>
     </form>
   </div>
   <div class="hero-image">
@@ -44,18 +43,18 @@
     {% for p in featured %}
     <div class="pet-card">
       <div class="pet-image">
-        <img src="/static/images/search_pets.jpg" alt="{{ p.name }}">
+        <img src="/static/images/{{ p.name }}.png" alt="{{ p.name }}">
         <div class="pet-difficulty">Difficulty: {{ p.difficulty }}/5</div>
       </div>
       <div class="pet-info">
-        <h3><a href="/pet/{{ p.name|lower }}">{{ p.name }}</a></h3>
+        <h3><a href="/static/images/{{ p.name }}.png">{{ p.name }}</a></h3>
         <p class="pet-stats">
           <span>Setup: ${{ p.cost_setup }}</span>
           <span>•</span>
           <span>Daily: {{ p.daily_time_min }}min</span>
         </p>
         <p class="pet-temperament">{{ p.temperament }}</p>
-        <a href="/pet/{{ p.name|lower }}" class="pet-link">Learn More →</a>
+        <a href="/static/images/{{ p.name }}.png" alt="{{ p.name }}"></a>
       </div>
     </div>
     {% else %}
