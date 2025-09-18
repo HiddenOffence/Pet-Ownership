@@ -5,53 +5,12 @@
 <div class="browse-container">
   <h2>Browse Pets</h2>
   <p class="browse-intro">Find your perfect companion from our selection of low-maintenance pets.</p>
-  <div class="search-filters">
-    <form method="GET" action="/browse" class="browse-form">
-      <div class="search-box">
-        <input type="text" name="search" placeholder="Search by name or temperament">
-        <button type="submit">Filter</button>
-    <select name="difficulty">
-    </div>
-
-    <div class="filter-options">
-                <div class="filter-group">
-                    <label for="difficulty">Difficulty Level:</label>
-                    <select name="difficulty" id="difficulty">
-                        <option value="">Any Difficulty</option>
-                        <option value="1" {% if difficulty_filter == '1' %}selected{% endif %}>Easy (1/5)</option>
-                        <option value="2" {% if difficulty_filter == '2' %}selected{% endif %}>Medium (2/5)</option>
-                        <option value="3" {% if difficulty_filter == '3' %}selected{% endif %}>Moderate (3/5)</option>
-                        <option value="4" {% if difficulty_filter == '4' %}selected{% endif %}>Challenging (4/5)</option>
-                        <option value="5" {% if difficulty_filter == '5' %}selected{% endif %}>Hard (5/5)</option>
-                    </select>
-                </div>
-                
-                <div class="filter-group">
-                    <label for="sort">Sort By:</label>
-                    <select name="sort" id="sort">
-                        <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Name A-Z</option>
-                        <option value="difficulty" {% if sort_by == 'difficulty' %}selected{% endif %}>Easiest First</option>
-                        <option value="cost_setup" {% if sort_by == 'cost_setup' %}selected{% endif %}>Lowest Cost First</option>
-                        <option value="daily_time_min" {% if sort_by == 'daily_time_min' %}selected{% endif %}>Least Time First</option>
-                    </select>
-                </div>
-            </div>
-        </form>
-    </div>
-    
-    <div class="results-info">
-        <p>Found <strong>{{ pets|length }}</strong> pets matching your criteria</p>
-        {% if search_query %}
-        <p>Search results for: "<strong>{{ search_query }}</strong>"</p>
-        {% endif %}
-    </div>
     
     <div class="pets-grid">
         {% for pet in pets %}
         <div class="pet-card">
             <div class="pet-image">
-                <img src="/static/images/{{ pet.name|lower }}.jpg" alt="{{ pet.name }}">
-                <div class="pet-difficulty">Difficulty: {{ pet.difficulty }}/5</div>
+                <img src="/static/images/{{ pet.name }}.png" alt="{{ pet.name }}">
             </div>
             
             <div class="pet-info">

@@ -129,6 +129,71 @@ def home():
                            featured=featured, reviews=latest_reviews)
 
 
+# Browse pet page - search-Deepseek
+@app.route('/browse')
+def browse():
+    # Get query parameters
+    search_query = request.args.get('search', '')
+    difficulty_filter = request.args.get('difficulty', '')
+    sort_by = request.args.get('sort', 'name')
+
+    # Build SQL query
+    sql = '''SELECT id,
+name,
+species_id,
+lifespan,
+difficulty,
+cost_setup,
+daily_time_min,
+space_required,
+temperament,
+notes
+FROM Pets
+WHERE 1=1'''
+    params = []
+
+    # Add search filter
+    if search_query:
+        sql += ''' AND (name LIKE ?
+OR temperament LIKE ?
+OR species LIKE ?
+OR lifespan LIKE ?
+OR space_required LIKE ?)'''
+        search_term = f'%{search_query}%'
+        params.extend([search_term, search_term, search_term])
+
+    # Add difficulty filter
+    if difficulty_filter:
+        sql += ''' AND difficulty = ?'''
+        params.append(int(difficulty_filter))
+
+    # Add sorting
+    if sort_by == 'name':
+        sql += ''' ORDER BY name ASC'''
+    elif sort_by == 'difficulty':
+        sql += ''' ORDER BY difficulty ASC, name ASC'''
+    elif sort_by == 'cost_setup':
+        sql += ''' ORDER BY cost_setup ASC, name ASC'''
+    elif sort_by == 'daily_time_min':
+        sql += ''' ORDER BY daily_time_min ASC, name ASC'''
+
+    conn = get_db()
+    try:
+        pets = conn.execute(sql, params).fetchall()
+        pets = [dict(pet) for pet in pets]  # Convert to dictionaries
+    except Exception as e:
+        print("Error fetching pets:", e)
+        pets = []
+    finally:
+        conn.close()
+
+    return render_template('browse.html',
+                           pets=pets,
+                           search_query=search_query,
+                           difficulty_filter=difficulty_filter,
+                           sort_by=sort_by)
+
+
 # Debug search
 @app.route('/debug_search')
 def debug_search():

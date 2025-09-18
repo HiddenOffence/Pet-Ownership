@@ -5,12 +5,11 @@
 <div class="pet-profile-container">
     <div class="pet-header">
         <h1>{{ pet.name }}</h1>
-        <p class="pet-species">{{ pet.species or 'Unknown species' }}</p>
     </div>
     
     <div class="pet-content">
-        <div class="pet-image-large">
-            <img src="/static/images/{{ pet.name|lower }}.jpg" alt="{{ pet.name }}">
+        <div class="pet-image">
+            <img src="/static/images/{{ pet.name }}.png" alt="{{ pet.name }}" alt="Image of {{ pet.name }}">
         </div>
         
         <div class="pet-details">
