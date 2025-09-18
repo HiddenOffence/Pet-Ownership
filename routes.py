@@ -262,14 +262,10 @@ def pet_profile(pet_id):
             print("got here")
             return render_template('pet_profiles.html', pet=dict(pet))
         else:
-            return render_template('error.html',
-                                   message=(f'Pet with ID {pet_id} not found. \
-                                       <a href="/browse">Browse all pets</a>'))
+            abort(404), 404
     except Exception as e:
         print("Error fetching pet:", e)
-        return render_template('error.html',
-                               message='Error loading pet information. \
-                                   Please try again.')
+        abort(404), 404
     finally:
         conn.close()
 

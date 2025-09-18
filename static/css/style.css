@@ -528,8 +528,9 @@ button:hover {
     border-top:1px 
     solid #eee; 
     margin-top:2rem; 
-    color:var(--muted); 
+    color: black; 
     text-align:center; 
+    font-family: 'Merienda', cursive;
 }
 
 /* Compare page styles */
